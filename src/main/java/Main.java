@@ -12,6 +12,8 @@ public class Main {
         String input=scanner.nextLine();
         System.out.println(input + ": command not found");
         if(input.equals("exit"))
+        {
+            System.out.println(input + ": command not found");
             break;
     }
     }
