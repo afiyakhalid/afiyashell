@@ -1,6 +1,10 @@
-import java.util.Arrays;
+mport java.util.Scanner;
 import java.util.List;
-import java.util.Scanner;
+import java.util.Arrays;
+import java.nio.file.Files; // Import these to make lines shorter
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -29,26 +33,29 @@ public class Main {
         if(builtins.contains(commandtocheck))
         {
             System.out.println(commandtocheck +" is a shell builtin");
-            break;
+           
+           
         }else{
-          String path=gethelp(commandtocheck);
+          String path=getpath(commandtocheck);
           if(path!=null){
-            System.out.println(commandtocheck + "is" + path);
+            System.out.println(commandtocheck + " is " + path);
           }else{
         System.out.println(input + ": not found");
         }
         } 
-        else{
+       } else{
         System.out.println(input + ": command not found");
     }
     }
 }
 
-}
-private stattic String getpath(String command){
-    String pathenv=system.getenv("PATH");
+
+private static String getpath(String command){
+    String pathenv=System.getenv("PATH");
+    if (pathenv == null) 
+        return null;
     for(String path:pathenv.split(":")){
-        java.nio.file.Path fullpath=java.nio.file.Path(path,command);
+        java.nio.file.Path fullpath=java.nio.file.Path.of(path, command)
         if(java.nio.file.Files.exists(fullpath)&&java.nio.file.Files.isExecutable(fullpath)){
             return fullpath.toString();
         }
