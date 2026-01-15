@@ -29,7 +29,7 @@ public class Main {
         String commandtocheck=input.substring(5);
         if(builtins.contains(commandtocheck))
         {
-            System.out.println(commandtocheck+" :  is a shell built in");
+            System.out.println(commandtocheck+" is a shell builtin");
         }else{
             System.out.println(commandtocheck+ " :not found");
         }
