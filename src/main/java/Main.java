@@ -1,7 +1,6 @@
-import java.util.Scanner;
-import java.util.*;
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -25,13 +24,13 @@ public class Main {
            String message=input.substring(5);
            System.out.println(message);
         }
-        else if(input.startsWith("type")){
-        String commandtocheck=input.substring(5);
+                else if (input.startsWith("type ")) {
+                String commandtocheck = input.substring(5);
         if(builtins.contains(commandtocheck))
         {
-            System.out.println(commandtocheck+" is a shell builtin");
+            System.out.println(commandtocheck +" is a shell builtin");
         }else{
-            System.out.println(commandtocheck+ " :not found");
+          System.out.println(commandtocheck+":  not found");
         }
         } 
         else{
