@@ -30,7 +30,7 @@ public class Main {
         {
             System.out.println(commandtocheck +" is a shell builtin");
         }else{
-          System.out.println(commandtocheck+":  not found");
+          System.out.println(commandtocheck+": not found");
         }
         } 
         else{
