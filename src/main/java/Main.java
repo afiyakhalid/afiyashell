@@ -13,7 +13,7 @@ public class Main {
         System.out.println(input + ": command not found");
         if(input.equals("exit"))
         {
-            System.out.println(input + ": command not found");
+            System.out.println(input);
             break;
     }
     }
