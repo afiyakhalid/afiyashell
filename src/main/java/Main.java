@@ -11,6 +11,8 @@ public class Main {
             System.out.flush();
         String input=scanner.nextLine();
         System.out.println(input + ": command not found");
+        if(input.equals("exit"))
+            break;
     }
     }
 }
