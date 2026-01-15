@@ -22,7 +22,7 @@ public class Main {
            String message=input.substring(5);
            System.out.println(message);
         }
-        else if(input.startsWith("type"))
+        else if(input.startsWith("type")){
         String commandtocheck=input.substring(5);
         if(builtins.contains(commandtocheck))
         {
@@ -30,7 +30,7 @@ public class Main {
         }else{
             System.out.println(commandtocheck+ " :not found");
         }
-        
+        } 
         else{
         System.out.println(input + ": command not found");
     }
