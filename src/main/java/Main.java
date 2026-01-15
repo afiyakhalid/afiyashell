@@ -29,13 +29,30 @@ public class Main {
         if(builtins.contains(commandtocheck))
         {
             System.out.println(commandtocheck +" is a shell builtin");
+            break;
         }else{
-          System.out.println(commandtocheck+": not found");
+          String path=gethelp(commandtocheck);
+          if(path!=null){
+            System.out.println(commandtocheck + "is" + path);
+          }else{
+        System.out.println(input + ": not found");
         }
         } 
         else{
         System.out.println(input + ": command not found");
     }
     }
+}
+
+}
+private stattic String getpath(String command){
+    String pathenv=system.getenv("PATH");
+    for(String path:pathenv.split(":")){
+        java.nio.file.Path fullpath=java.nio.file.Path(path,command);
+        if(java.nio.file.Files.exists(fullpath)&&java.nio.file.Files.isExecutable(fullpath)){
+            return fullpath.toString();
+        }
+    }
+    return null;
 }
 }
