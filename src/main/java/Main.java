@@ -8,7 +8,7 @@ public class Main {
         // TODO: Uncomment the code below to pass the first stage
        
         Scanner scanner=new Scanner(System.in);
-        List<String> builtins=Arrays.asList("echo","exit","type");
+        List<String> builtins=Arrays.asList("echo","exit","type","pwd");
         
         while(true){
                System.out.print("$ ");
@@ -40,7 +40,10 @@ public class Main {
         System.out.println(commandtocheck + ": not found");
         }
         } 
-       } else{
+       }else if(input.equals("pwd")) {
+        String directory=System.getProperty("user.dir");
+        System.out.println(directory);
+        }else{
         
         String [] parts=input.split(" ");
         String command=parts[0];
