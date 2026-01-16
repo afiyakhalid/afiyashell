@@ -49,6 +49,11 @@ public class Main {
         System.out.println(current.toString());
         }else if(input.startsWith("cd")) {
             String pathstring =input.substring(3);
+            if(pathstring.equals("~")){
+                pathstring=System.getenv("HOME");
+             }else if(pathstring.startsWith("~/")){
+                pathstring=System.getenv("HOME") + pathstring.substring(1);
+             }
             Path newpath=current.resolve(pathstring).normalize();
             if(Files.isDirectory(newpath)){
                 current=newpath;
