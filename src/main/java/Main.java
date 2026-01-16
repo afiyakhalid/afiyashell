@@ -1,9 +1,6 @@
-import java.util.Scanner;
-import java.util.List;
 import java.util.Arrays;
-import java.nio.file.Files; // Import these to make lines shorter
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.List;
+import java.util.Scanner;
 
 
 public class Main {
@@ -44,7 +41,20 @@ public class Main {
         }
         } 
        } else{
-        System.out.println(input + ": command not found");
+        
+        String [] parts=input.split(" ");
+        String command=parts[0];
+        String commandpath=getpath(command);
+        if(commandpath!=null){
+            ProcessBuilder pb=new ProcessBuilder(parts);
+            pb.inheritIO();
+            Process process=pb.start();
+            process.waitFor();
+
+
+        }else{
+            System.out.println(input + ": command not found");
+        }
     }
     }
 }
