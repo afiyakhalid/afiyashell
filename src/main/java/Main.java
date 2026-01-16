@@ -49,7 +49,7 @@ public class Main {
         System.out.println(current.toString());
         }else if(input.startsWith("cd")) {
             String pathstring =input.substring(3);
-            Path newpath=Path.of(pathstring);
+            Path newpath=current.resolve(pathstring).normalize();
             if(Files.isDirectory(newpath)){
                 current=newpath;
             }else{
