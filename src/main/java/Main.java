@@ -1,9 +1,13 @@
-import java.util.Arrays;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;  // <--- Added this just to be safe
 import java.util.List;
-import java.util.Scanner;
+import java.util.Scanner;  // <--- Added this just to be safe
 
 
 public class Main {
+    private static Path current=Paths.get(System.getProperty("user.dir"));
     public static void main(String[] args) throws Exception {
         // TODO: Uncomment the code below to pass the first stage
        
@@ -41,8 +45,16 @@ public class Main {
         }
         } 
        }else if(input.equals("pwd")) {
-        String directory=System.getProperty("user.dir");
-        System.out.println(directory);
+      
+        System.out.println(current.toString());
+        }else if(input.startsWith("cd")) {
+            String pathstring =input.substring(3);
+            Path newpath=Path.of(pathstring);
+            if(Files.isDirectory(newpath)){
+                current=newpath;
+            }else{
+                System.out.println("cd:" + input + ": No such file or directory");
+            }
         }else{
         
         String [] parts=input.split(" ");
@@ -50,6 +62,7 @@ public class Main {
         String commandpath=getpath(command);
         if(commandpath!=null){
             ProcessBuilder pb=new ProcessBuilder(parts);
+            pb.directory(current.toFile());
             pb.inheritIO();
             Process process=pb.start();
             process.waitFor();
