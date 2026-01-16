@@ -53,7 +53,7 @@ public class Main {
             if(Files.isDirectory(newpath)){
                 current=newpath;
             }else{
-                System.out.println("cd:" + pathstring + ": No such file or directory");
+                System.out.println("cd:" +  pathstring + ": No such file or directory");
             }
         }else{
         
