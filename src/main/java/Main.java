@@ -93,13 +93,32 @@ private static String[] parseArguments(String input){
     boolean isdouble=false;
     for(int i=0;i<input.length();i++){
         char c=input.charAt(i);
-        if(c=='\\'&&!isdouble&&!issingle){
-            i++;
-            if(i<input.length()){
-                current.append(input.charAt(i));
+        if(c=='\\'){
+           if(issingle){
+            current.append(c);
+           }else if(isdouble){
+            if(i+1<input.length()){
+                char next=input.charAt(i+1);
+                if(next=='"'||next=='\\'||next=='$'||next=='`'){
+                    current.append(next);
+                    i++;
+                }else{
+                    current.append(c);
+                }
+            }else{
+                current.append(c);
+
+                }
             }
-            continue;
+            else{
+                if(i+1<input.length()){
+                    current.append(input.charAt(i+1));
+                i++;
+            }
+           }
+           continue;
         }
+        
         if(c=='\''){
             if(isdouble){
                 current.append(c);
@@ -133,9 +152,10 @@ private static String[] parseArguments(String input){
     
    
 }
+
+
 return args.toArray(new String[0]);
 }
-
 
 private static String getpath(String command){
     String pathenv=System.getenv("PATH");
