@@ -90,25 +90,45 @@ private static String[] parseArguments(String input){
     List<String> args=new ArrayList<>();
     StringBuilder current=new StringBuilder();
     boolean issingle=false;
+    boolean isdouble=false;
     for(int i=0;i<input.length();i++){
         char c=input.charAt(i);
         if(c=='\''){
-            issingle=!issingle;
-        }else if(c==' '&&!issingle){
+            if(isdouble){
+                current.append(c);
+            }else{
+                issingle=!issingle;
+            }
+        }else if(c=='"'){
+            if(issingle){
+                current.append(c);
+            }else{
+                isdouble=!isdouble;
+            }
+        }
+        else if(c==' '){
+            if(!issingle&&!isdouble){
             if(current.length()>0){
             args.add(current.toString());
             current.setLength(0);
+            }
+        }else{
+            current.append(c);
         }
         }else{
         
             current.append(c);
         }
     }
+    
     if(current.length()>0){
         args.add(current.toString());
-    }
-    return args.toArray(new String[0]);
+    
+   
 }
+return args.toArray(new String[0]);
+}
+
 
 private static String getpath(String command){
     String pathenv=System.getenv("PATH");
@@ -123,3 +143,4 @@ private static String getpath(String command){
     return null;
 }
 }
+
