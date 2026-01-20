@@ -1,6 +1,7 @@
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;  // <--- Added this just to be safe
 import java.util.List;
 import java.util.Scanner;  // <--- Added this just to be safe
@@ -12,7 +13,7 @@ public class Main {
         // TODO: Uncomment the code below to pass the first stage
        
         Scanner scanner=new Scanner(System.in);
-        List<String> builtins=Arrays.asList("echo","exit","type","pwd");
+        List<String> builtins=Arrays.asList("echo","exit","type","pwd","cd");
         
         while(true){
                System.out.print("$ ");
@@ -26,8 +27,15 @@ public class Main {
     }
     else if (input.startsWith("echo "))
         {
-           String message=input.substring(5);
-           System.out.println(message);
+        String[] parts=parseArguments(input);
+           for (int i = 1; i < parts.length; i++) {
+                    System.out.print(parts[i]);
+                    // Add space only if it's not the last word
+                    if (i < parts.length - 1) {
+                        System.out.print(" ");
+                    }
+                }
+                System.out.println();
         }
                 else if (input.startsWith("type ")) {
                 String commandtocheck = input.substring(5);
@@ -61,9 +69,8 @@ public class Main {
                 System.out.println("cd: " + pathstring + ": No such file or directory");
             }
         }else{
-        
-        String [] parts=input.split(" ");
-        String command=parts[0];
+            String[] parts = parseArguments(input); 
+            String command = parts[0];
         String commandpath=getpath(command);
         if(commandpath!=null){
             ProcessBuilder pb=new ProcessBuilder(parts);
@@ -79,7 +86,29 @@ public class Main {
     }
     }
 }
-
+private static String[] parseArguments(String input){
+    List<String> args=new ArrayList<>();
+    StringBuilder current=new StringBuilder();
+    boolean issingle=false;
+    for(int i=0;i<input.length();i++){
+        char c=input.charAt(i);
+        if(c=='\''){
+            issingle=!issingle;
+        }else if(c==' '&&!issingle){
+            if(current.length()>0){
+            args.add(current.toString());
+            current.setLength(0);
+        }
+        }else{
+        
+            current.append(c);
+        }
+    }
+    if(current.length()>0){
+        args.add(current.toString());
+    }
+    return args.toArray(new String[0]);
+}
 
 private static String getpath(String command){
     String pathenv=System.getenv("PATH");
