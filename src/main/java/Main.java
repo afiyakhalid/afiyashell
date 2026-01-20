@@ -93,6 +93,13 @@ private static String[] parseArguments(String input){
     boolean isdouble=false;
     for(int i=0;i<input.length();i++){
         char c=input.charAt(i);
+        if(c=='\\'&&!isdouble&&!issingle){
+            i++;
+            if(i<input.length()){
+                current.append(input.charAt(i));
+            }
+            continue;
+        }
         if(c=='\''){
             if(isdouble){
                 current.append(c);
