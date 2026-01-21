@@ -94,21 +94,37 @@ else{
                 System.out.println("cd: " + pathstring + ": No such file or directory");
             }
         }else{
-            String[] parts = parseArguments(input); 
-            String command = parts[0];
-        String commandpath=getpath(command);
-        if(commandpath!=null){
-            ProcessBuilder pb=new ProcessBuilder(parts);
-            pb.directory(current.toFile());
-            pb.inheritIO();
-            Process process=pb.start();
-            process.waitFor();
+           String[] parts=parseArguments(input);
+           List<String> commandargs=new ArrayList<>();
+              java.io.File outputfile=null;
+              for(int i=0;i<parts.length;i++){
+                if(parts[i].equals(">")||parts[i].equals("1>")){
+                    if(i+1<parts.length){
+                        outputfile=new java.io.File(parts[i+1]);
+                        i++;
+                    }
+                }else{
+                    commandargs.add(parts[i]);}
+              }
+              if(commandargs.size()>0){
+            String command=commandargs.get(0);
+            String commandpath=getpath(command);
+            if(commandpath!=null){
+                ProcessBuilder pb=new ProcessBuilder(commandargs);
+                pb.directory(current.toFile());
+                if(outputfile!=null){
+                    pb.redirectOutput(outputfile);
+                }else{
+                    pb.inheritIO();
+                }
+                Process process=pb.start();
+                process.waitFor();
+            }else{
+                System.out.println(command + ": not found");
+            }
+              }
 
-
-        }else{
-            System.out.println(input + ": command not found");
         }
-    }
     }
 }
 private static String[] parseArguments(String input){
