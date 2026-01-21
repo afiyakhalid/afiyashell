@@ -114,6 +114,7 @@ else{
                 pb.directory(current.toFile());
                 if(outputfile!=null){
                     pb.redirectOutput(outputfile);
+                    pb.redirectError(ProcessBuilder.Redirect.INHERIT);
                 }else{
                     pb.inheritIO();
                 }
