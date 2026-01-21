@@ -37,6 +37,7 @@ public class Main {
                 if(i+1<parts.length)
 {
     outputfile=new java.io.File(parts[i+1]);
+    append=false;
     i++;
 }            }
 else if(parts[i].equals(">>")||parts[i].equals("1>>")){
@@ -53,6 +54,13 @@ else if(parts[i].equals(">>")||parts[i].equals("1>>")){
                 i++;
             }
         }
+        else if (parts[i].equals("2>>")) {  
+            if (i + 1 < parts.length) {
+                errorFile = new java.io.File(parts[i+1]);
+                i++;
+            }
+        }
+        
 else{
     argstoadd.add(parts[i]);
 }
@@ -138,6 +146,13 @@ else{
                     } else if (parts[i].equals("2>")) {
                         if (i + 1 < parts.length) {
                             errorfile = new java.io.File(parts[i + 1]);
+                            i++;
+                        }
+                    }
+                    else if (parts[i].equals("2>>")) {
+                        if (i + 1 < parts.length) {
+                            errorfile = new java.io.File(parts[i + 1]);
+                            append=true;
                             i++;
                         }
                     }else if (parts[i].equals(">>") || parts[i].equals("1>>")) {
