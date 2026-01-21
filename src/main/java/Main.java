@@ -28,14 +28,39 @@ public class Main {
     else if (input.startsWith("echo "))
         {
         String[] parts=parseArguments(input);
-           for (int i = 1; i < parts.length; i++) {
-                    System.out.print(parts[i]);
-                    // Add space only if it's not the last word
-                    if (i < parts.length - 1) {
-                        System.out.print(" ");
+           java.io.File outputfile=null;
+           List<String> argstoadd=new ArrayList<>();
+           for(int i=1;i<parts.length;i++){
+            if(parts[i].equals(">")||parts[i].equals("1>")){
+                if(i+1<parts.length)
+{
+    outputfile=new java.io.File(parts[i+1]);
+    i++;
+}            }
+else{
+    argstoadd.add(parts[i]);
+}
+           }
+           if(outputfile!=null){
+            try(java.io.PrintWriter ps=new java.io.PrintWriter(outputfile)){
+                for(int j=0;j<argstoadd.size();j++){
+                    ps.print(argstoadd.get(j));
+                    if(j<argstoadd.size()-1){
+                        ps.print(" ");
                     }
                 }
-                System.out.println();
+                ps.println();
+            }
+        }
+        else{
+            for(int j=0;j<argstoadd.size();j++){
+                System.out.print(argstoadd.get(j));
+                if(j<argstoadd.size()-1){
+                    System.out.print(" ");
+                }
+            }
+            System.out.println();
+        }
         }
                 else if (input.startsWith("type ")) {
                 String commandtocheck = input.substring(5);
