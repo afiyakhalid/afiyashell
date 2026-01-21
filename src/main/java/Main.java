@@ -2,15 +2,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;  // <--- Added this just to be safe
+import java.util.Arrays;  
 import java.util.List;
-import java.util.Scanner;  // <--- Added this just to be safe
+import java.util.Scanner; 
 
 
 public class Main {
     private static Path current=Paths.get(System.getProperty("user.dir"));
     public static void main(String[] args) throws Exception {
-        // TODO: Uncomment the code below to pass the first stage
+   
        
         Scanner scanner=new Scanner(System.in);
         List<String> builtins=Arrays.asList("echo","exit","type","pwd","cd");
@@ -121,7 +121,7 @@ else{
                 System.out.println("cd: " + pathstring + ": No such file or directory");
             }
         }else{
-                // --- EXTERNAL COMMANDS ---
+              
                 String[] parts = parseArguments(input);
                 List<String> commandargs = new ArrayList<>();
                 java.io.File outputfile = null;
@@ -161,12 +161,16 @@ else{
                         pb.directory(current.toFile());
 
                         if (outputfile != null) {
-                            pb.redirectOutput(outputfile);
+                            if(append){
+                            pb.redirectOutput(ProcessBuilder.Redirect.appendTo(outputfile));
+                             } else{
+                           pb.redirectOutput(outputfile);
+                             }
                         } else {
                             pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
                         }
 
-                        // This is the critical part that was likely missing in the "outer" class
+                        
                         if (errorfile != null) {
                             pb.redirectError(errorfile);
                         } else {
