@@ -30,6 +30,7 @@ public class Main {
         String[] parts=parseArguments(input);
            java.io.File outputfile=null;
            java.io.File errorFile = null;
+           boolean append=false;
            List<String> argstoadd=new ArrayList<>();
            for(int i=1;i<parts.length;i++){
             if(parts[i].equals(">")||parts[i].equals("1>")){
@@ -37,7 +38,16 @@ public class Main {
 {
     outputfile=new java.io.File(parts[i+1]);
     i++;
-}            }else if (parts[i].equals("2>")) {  
+}            }
+else if(parts[i].equals(">>")||parts[i].equals("1>>")){
+                if(i+1<parts.length)
+{
+    outputfile=new java.io.File(parts[i+1]);
+    append=true;
+    i++;
+
+}
+}else if (parts[i].equals("2>")) {  
             if (i + 1 < parts.length) {
                 errorFile = new java.io.File(parts[i+1]);
                 i++;
@@ -48,7 +58,7 @@ else{
 }
            }
            if(outputfile!=null){
-            try(java.io.PrintWriter ps=new java.io.PrintWriter(outputfile)){
+            try(java.io.PrintWriter ps=new java.io.PrintWriter(new java.io.FileOutputStream(outputfile,append))){
                 for(int j=0;j<argstoadd.size();j++){
                     ps.print(argstoadd.get(j));
                     if(j<argstoadd.size()-1){
@@ -72,7 +82,7 @@ else{
                        
                         new java.io.FileOutputStream(errorFile).close();
                     } catch (java.io.IOException e) {
-                        // If we can't create the error file, we usually ignore it in this simple shell context
+                        
                     }
                 }
 
@@ -116,11 +126,13 @@ else{
                 List<String> commandargs = new ArrayList<>();
                 java.io.File outputfile = null;
                 java.io.File errorfile = null;
+                boolean append=false;
 
                 for (int i = 0; i < parts.length; i++) {
                     if (parts[i].equals(">") || parts[i].equals("1>")) {
                         if (i + 1 < parts.length) {
                             outputfile = new java.io.File(parts[i + 1]);
+                            append=false;
                             i++;
                         }
                     } else if (parts[i].equals("2>")) {
@@ -128,7 +140,15 @@ else{
                             errorfile = new java.io.File(parts[i + 1]);
                             i++;
                         }
-                    } else {
+                    }else if (parts[i].equals(">>") || parts[i].equals("1>>")) {
+                        if (i + 1 < parts.length) {
+                            outputfile = new java.io.File(parts[i + 1]);
+                            append = true;
+                            i++;
+                        }
+                        
+                    }
+                     else {
                         commandargs.add(parts[i]);
                     }
                 }
