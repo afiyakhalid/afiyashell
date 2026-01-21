@@ -187,10 +187,16 @@ else{
 
                         
                         if (errorfile != null) {
-                            pb.redirectError(errorfile);
-                        } else {
-                            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
-                        }
+        if (append) {
+      
+            pb.redirectError(ProcessBuilder.Redirect.appendTo(errorfile));
+        } else {
+            
+            pb.redirectError(errorfile);
+        }
+    } else {
+        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+    }
 
                         Process process = pb.start();
                         process.waitFor();
