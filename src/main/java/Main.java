@@ -100,53 +100,55 @@ else{
                 System.out.println("cd: " + pathstring + ": No such file or directory");
             }
         }else{
-           String[] parts=parseArguments(input);
-           List<String> commandargs=new ArrayList<>();
-              java.io.File outputfile=null;
-              java.io.File errorfile = null;
-              for(int i=0;i<parts.length;i++){
-                if(parts[i].equals(">")||parts[i].equals("1>")){
-                        if(i+1<parts.length){
-                            outputfile=new java.io.File(parts[i+1]);
+                // --- EXTERNAL COMMANDS ---
+                String[] parts = parseArguments(input);
+                List<String> commandargs = new ArrayList<>();
+                java.io.File outputfile = null;
+                java.io.File errorfile = null;
+
+                for (int i = 0; i < parts.length; i++) {
+                    if (parts[i].equals(">") || parts[i].equals("1>")) {
+                        if (i + 1 < parts.length) {
+                            outputfile = new java.io.File(parts[i + 1]);
                             i++;
-                    }
-                }else if (parts[i].equals("2>")) {
-                    if(i+1<parts.length){
-                            errorfile=new java.io.File(parts[i+1]);
-                            i++;
-                }
-                else{
-                    commandargs.add(parts[i]);}
-              }
-              if(commandargs.size()>0){
-            String command=commandargs.get(0);
-            String commandpath=getpath(command);
-            if(commandpath!=null){
-                ProcessBuilder pb=new ProcessBuilder(commandargs);
-                pb.directory(current.toFile());
-                if(outputfile!=null){
-                    pb.redirectOutput(outputfile);
-                    }else{
-                        pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
                         }
-                    
-                
-                if(errorfile!=null){
-
-                  
-                    pb.redirectError(errorfile);
-                }else{
-                    pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+                    } else if (parts[i].equals("2>")) {
+                        if (i + 1 < parts.length) {
+                            errorfile = new java.io.File(parts[i + 1]);
+                            i++;
+                        }
+                    } else {
+                        commandargs.add(parts[i]);
+                    }
                 }
-                Process process=pb.start();
-                process.waitFor();
-            }else{
-                System.out.println(command + ": not found");
-            }
-              }
 
-        }
-    }
+                if (commandargs.size() > 0) {
+                    String command = commandargs.get(0);
+                    String commandpath = getpath(command);
+                    if (commandpath != null) {
+                        ProcessBuilder pb = new ProcessBuilder(commandargs);
+                        pb.directory(current.toFile());
+
+                        if (outputfile != null) {
+                            pb.redirectOutput(outputfile);
+                        } else {
+                            pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+                        }
+
+                        // This is the critical part that was likely missing in the "outer" class
+                        if (errorfile != null) {
+                            pb.redirectError(errorfile);
+                        } else {
+                            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+                        }
+
+                        Process process = pb.start();
+                        process.waitFor();
+                    } else {
+                        System.out.println(command + ": not found");
+                    }
+                }
+            }
         }
     }
 
