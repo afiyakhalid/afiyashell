@@ -67,7 +67,18 @@ else{
             }
             System.out.println();
         }
+        if (errorFile != null) {
+                    try {
+                       
+                        new java.io.FileOutputStream(errorFile).close();
+                    } catch (java.io.IOException e) {
+                        // If we can't create the error file, we usually ignore it in this simple shell context
+                    }
+                }
+
+            
         }
+        
                 else if (input.startsWith("type ")) {
                 String commandtocheck = input.substring(5);
         if(builtins.contains(commandtocheck))
