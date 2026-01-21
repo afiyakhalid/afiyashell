@@ -29,6 +29,7 @@ public class Main {
         {
         String[] parts=parseArguments(input);
            java.io.File outputfile=null;
+           java.io.File errorFile = null;
            List<String> argstoadd=new ArrayList<>();
            for(int i=1;i<parts.length;i++){
             if(parts[i].equals(">")||parts[i].equals("1>")){
@@ -36,7 +37,12 @@ public class Main {
 {
     outputfile=new java.io.File(parts[i+1]);
     i++;
-}            }
+}            }else if (parts[i].equals("2>")) {  
+            if (i + 1 < parts.length) {
+                errorFile = new java.io.File(parts[i+1]);
+                i++;
+            }
+        }
 else{
     argstoadd.add(parts[i]);
 }
@@ -97,13 +103,19 @@ else{
            String[] parts=parseArguments(input);
            List<String> commandargs=new ArrayList<>();
               java.io.File outputfile=null;
+              java.io.File errorfile = null;
               for(int i=0;i<parts.length;i++){
                 if(parts[i].equals(">")||parts[i].equals("1>")){
-                    if(i+1<parts.length){
-                        outputfile=new java.io.File(parts[i+1]);
-                        i++;
+                        if(i+1<parts.length){
+                            outputfile=new java.io.File(parts[i+1]);
+                            i++;
                     }
-                }else{
+                }else if (parts[i].equals("2>")) {
+                    if(i+1<parts.length){
+                            errorfile=new java.io.File(parts[i+1]);
+                            i++;
+                }
+                else{
                     commandargs.add(parts[i]);}
               }
               if(commandargs.size()>0){
@@ -114,9 +126,17 @@ else{
                 pb.directory(current.toFile());
                 if(outputfile!=null){
                     pb.redirectOutput(outputfile);
-                    pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+                    }else{
+                        pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+                        }
+                    
+                
+                if(errorfile!=null){
+
+                  
+                    pb.redirectError(errorfile);
                 }else{
-                    pb.inheritIO();
+                    pb.redirectError(ProcessBuilder.Redirect.INHERIT);
                 }
                 Process process=pb.start();
                 process.waitFor();
@@ -127,7 +147,9 @@ else{
 
         }
     }
-}
+        }
+    }
+
 private static String[] parseArguments(String input){
     List<String> args=new ArrayList<>();
     StringBuilder current=new StringBuilder();
@@ -198,6 +220,7 @@ private static String[] parseArguments(String input){
 
 return args.toArray(new String[0]);
 }
+        
 
 private static String getpath(String command){
     String pathenv=System.getenv("PATH");
@@ -211,5 +234,8 @@ private static String getpath(String command){
     }
     return null;
 }
-}
+
+
+    }
+
 
