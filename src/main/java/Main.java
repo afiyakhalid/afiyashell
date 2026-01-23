@@ -45,7 +45,7 @@ public class Main {
                     System.out.print("\b \b");
                    }
                 }else if(c==10||c==13){
-                    System.out.println();
+                    System.out.print("\r\n");
                    
                     break;
 
