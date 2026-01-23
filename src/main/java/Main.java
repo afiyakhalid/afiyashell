@@ -84,7 +84,7 @@ public class Main {
                 }
                 else{
                     char ch=(char)c;
-                       System.out.print(ch);
+                     
                     inputbuffer.append(ch);
                     
                 }
