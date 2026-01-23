@@ -78,6 +78,26 @@ public class Main {
                     lastTabPrefix = null;
 
                     }
+                    else {
+       
+        String commonPrefix = candidates.get(0);
+        for (int i = 1; i < candidates.size(); i++) {
+            String next = candidates.get(i);
+            while (!next.startsWith(commonPrefix)) {
+                commonPrefix = commonPrefix.substring(0, commonPrefix.length() - 1);
+            }
+        }
+
+      
+        if (commonPrefix.length() > currentinput.length()) {
+            String suffix = commonPrefix.substring(currentinput.length());
+            System.out.print(suffix);
+            inputbuffer.append(suffix);
+         
+            tabPending = false; 
+            lastTabPrefix = null;
+        }
+                    
                 else{
                     if(tabPending && line.equals(lastTabPrefix)){
                         System.out.print("\r\n");
@@ -94,7 +114,7 @@ public class Main {
                         tabPending=true;
                         lastTabPrefix=line;
 
-
+                    }
                     }
                     }
                     continue;
