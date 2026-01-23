@@ -41,10 +41,11 @@ public class Main {
             System.out.flush();
              setRawMode(true);
              StringBuilder inputbuffer=new StringBuilder();
+               String lastTabPrefix=null;
+                boolean tabPending=false;
              while(true){
                 int c=System.in.read();
-                String lastTabPrefix=null;
-                boolean tabPending=false;
+                
                 if(c==9){
                     String line = inputbuffer.toString();
                     int spaceIdx = line.indexOf(' ');
@@ -78,9 +79,9 @@ public class Main {
                     }
                 else{
                     if(tabPending && line.equals(lastTabPrefix)){
-                        System.out.print("r\n");
-                        System.out.print(String.join("    ", candidates));
-                          System.out.print("r\n");
+                        System.out.print("\r\n");
+                        System.out.print(String.join("  ", candidates));
+                          System.out.print(" \r\n");
                           System.out.print("$ " + line);
                         System.out.flush();
                         tabPending=false;
