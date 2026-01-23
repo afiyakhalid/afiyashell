@@ -18,7 +18,49 @@ public class Main {
         while(true){
                System.out.print("$ ");
             System.out.flush();
-        String input=scanner.nextLine();
+             setRawMode(true);
+             StringBuilder inputbuffer=new StringBuilder();
+             while(true){
+                int c=System.in.read();
+                if(c==9){
+                    String currentinput=inputbuffer.toString();
+                    List<String> candidates=new ArrayList<>();
+                    if("echo".startsWith(currentinput)){
+                        candidates.add("echo");
+                    }
+                    if("exit".startsWith(currentinput)){
+                        candidates.add("exit");
+                    }
+                    if(candidates.size()==1){
+                        String matches=candidates.get(0);
+                        String suffix=matches.substring(inputbuffer.length()-1);
+                        System.out.print(suffix);
+                        inputbuffer.append(suffix);
+                       
+
+                    }
+                }else if (c==127) {
+                   if(inputbuffer.length()>0){
+                    inputbuffer.deleteCharAt(inputbuffer.length()-1);
+                    System.out.print("\b \b");
+                   }
+                }else if(c==10||c==13){
+                    System.out.println();
+                   
+                    break;
+
+                }
+                else{
+                    char ch=(char)c;
+                       System.out.print(ch);
+                    inputbuffer.append(ch);
+                    
+                }
+             }
+             setRawMode(false);
+                String input=inputbuffer.toString().trim();
+        
+
    
         if(input.equals("exit"))
         {
@@ -205,6 +247,18 @@ else{
                     }
                 }
             }
+        }
+    }
+    private static void setRawMode(boolean enable) {
+        
+        String[] cmd = enable 
+            ? new String[]{"/bin/sh", "-c", "stty -echo raw </dev/tty"}
+            : new String[]{"/bin/sh", "-c", "stty echo -raw </dev/tty"};
+        
+        try {
+            Runtime.getRuntime().exec(cmd).waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
