@@ -20,7 +20,7 @@ public class Main {
        
       
         List<String> builtins=Arrays.asList("echo","exit","type","pwd","cd");
-       boolean interactive = (System.console() != null) && hasTty();
+     boolean interactive = hasTty();
         
 
         if (!interactive) {
@@ -133,8 +133,8 @@ public class Main {
                 }
                 else{
                     char ch=(char)c;
-                //       System.out.print(ch);
-                //  System.out.flush();
+                      System.out.print(ch);
+                 System.out.flush();
                     inputbuffer.append(ch);
                      tabPending = false;
                       lastTabPrefix = null;
