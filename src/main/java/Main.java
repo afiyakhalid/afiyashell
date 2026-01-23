@@ -21,6 +21,7 @@ public class Main {
       
         List<String> builtins=Arrays.asList("echo","exit","type","pwd","cd");
        boolean interactive = (System.console() != null) && hasTty();
+        
 
         if (!interactive) {
             Scanner scanner = new Scanner(System.in);
@@ -81,7 +82,7 @@ public class Main {
                     if(tabPending && line.equals(lastTabPrefix)){
                         System.out.print("\r\n");
                         System.out.print(String.join("  ", candidates));
-                          System.out.print(" \r\n");
+                          System.out.print("\r\n");
                           System.out.print("$ " + line);
                         System.out.flush();
                         tabPending=false;
@@ -113,7 +114,7 @@ public class Main {
                 else{
                     char ch=(char)c;
                       System.out.print(ch);
-                //  System.out.flush();
+                 System.out.flush();
                     inputbuffer.append(ch);
                      tabPending = false;
                       lastTabPrefix = null;
