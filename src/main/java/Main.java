@@ -51,7 +51,10 @@ public class Main {
                     String line = inputbuffer.toString();
                     int spaceIdx = line.indexOf(' ');
     if (spaceIdx != -1) {
-     
+     System.out.print("\u0007");
+    System.out.flush();
+    tabPending = false;
+    lastTabPrefix = null;
         continue;
     }
                     Set<String> allcommands=getAllCommands(builtins);
