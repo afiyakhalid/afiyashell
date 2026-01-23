@@ -61,7 +61,7 @@ public class Main {
     Collections.sort(candidates);
     
                   if(candidates.isEmpty()){
-                    System.out.println("\u0007");
+                    System.out.print("\u0007");
                     System.out.flush();
 }                   else if(candidates.size()==1){
                         String matches=candidates.get(0);
