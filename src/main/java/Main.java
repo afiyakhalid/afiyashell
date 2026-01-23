@@ -121,7 +121,7 @@ public class Main {
                     }else if (c==127) {
                    if(inputbuffer.length()>0){
                     inputbuffer.deleteCharAt(inputbuffer.length()-1);
-                    System.out.print("\b \b");
+                    // System.out.print("\b \b");
                    }
                     tabPending = false;
                       lastTabPrefix = null;
@@ -133,8 +133,8 @@ public class Main {
                 }
                 else{
                     char ch=(char)c;
-                      System.out.print(ch);
-                 System.out.flush();
+                //       System.out.print(ch);
+                //  System.out.flush();
                     inputbuffer.append(ch);
                      tabPending = false;
                       lastTabPrefix = null;
