@@ -4,7 +4,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;  
 import java.util.List;
-import java.util.Scanner; 
+import java.util.Scanner;
 
 
 public class Main {
@@ -12,8 +12,23 @@ public class Main {
     public static void main(String[] args) throws Exception {
    
        
-        Scanner scanner=new Scanner(System.in);
+      
         List<String> builtins=Arrays.asList("echo","exit","type","pwd","cd");
+        if (System.console() == null) {
+            Scanner scanner = new Scanner(System.in);
+            while (scanner.hasNextLine()) {
+                System.out.print("$ ");
+                System.out.flush();
+
+                String input = scanner.nextLine().trim();
+                if (input.equals("exit")) {
+                    break; 
+                }
+
+                handleCommand(input, builtins);
+            }
+            return;
+        }
         
         while(true){
                System.out.print("$ ");
@@ -58,16 +73,20 @@ public class Main {
                 }
              }
              setRawMode(false);
-                String input=inputbuffer.toString().trim();
+                String input = inputbuffer.toString().trim();
+            if (input.equals("exit")) {
+                break; 
+            }
+
+            handleCommand(input, builtins);
+        }
+    }
         
 
-   
-        if(input.equals("exit"))
-        {
-            System.out.println(input);
-            break;
-    }
-    else if (input.startsWith("echo "))
+   private static void handleCommand(String input, List<String> builtins) throws Exception {
+        if (input.isEmpty()) return;
+       
+     if (input.startsWith("echo "))
         {
         String[] parts=parseArguments(input);
            java.io.File outputfile=null;
@@ -248,7 +267,8 @@ else{
                 }
             }
         }
-    }
+    
+    
     private static void setRawMode(boolean enable) {
         
         String[] cmd = enable 
@@ -346,8 +366,9 @@ private static String getpath(String command){
     }
     return null;
 }
+}
 
 
-    }
+    
 
 
