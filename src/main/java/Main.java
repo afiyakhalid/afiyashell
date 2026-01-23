@@ -3,8 +3,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;  
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.stream.Stream;
+
+
 
 
 public class Main {
@@ -38,14 +44,22 @@ public class Main {
              while(true){
                 int c=System.in.read();
                 if(c==9){
+                    Set<String> allcommands=getAllCommands(builtins);
                     String currentinput=inputbuffer.toString();
                     List<String> candidates=new ArrayList<>();
-                    if("echo".startsWith(currentinput)){
-                        candidates.add("echo");
-                    }
-                    if("exit".startsWith(currentinput)){
-                        candidates.add("exit");
-                    }
+                    for (String cmd : allcommands) {
+         if (cmd.startsWith(currentinput)) {
+            candidates.add(cmd);
+        }
+    }
+    Collections.sort(candidates);
+    
+                    // if("echo".startsWith(currentinput)){
+                    //     candidates.add("echo");
+                    // }
+                    // if("exit".startsWith(currentinput)){
+                    //     candidates.add("exit");
+                    // }
                     if(candidates.size()==1){
                         String matches=candidates.get(0);
                         String suffix=matches.substring(inputbuffer.length()) + " ";
@@ -359,7 +373,32 @@ private static String[] parseArguments(String input){
 
 return args.toArray(new String[0]);
 }
-        
+        private static Set<String> getAllCommands(List<String> builtins) {
+    Set<String> commands = new HashSet<>(builtins);
+    String pathEnv = System.getenv("PATH");
+    
+    if (pathEnv != null) {
+        String[] directories = pathEnv.split(":");
+        for (String dir : directories) {
+            try {
+                Path p = Paths.get(dir);
+                if (Files.exists(p) && Files.isDirectory(p)) {
+                    try (Stream<Path> stream = Files.list(p)) {
+                        stream.forEach(path -> {
+                           
+                            if (Files.isRegularFile(path) && Files.isExecutable(path)) {
+                                commands.add(path.getFileName().toString());
+                            }
+                        });
+                    }
+                }
+            } catch (Exception ignored) {
+              
+            }
+        }
+    }
+    return commands;
+}
 
 private static String getpath(String command){
     String pathenv=System.getenv("PATH");
