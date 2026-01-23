@@ -78,13 +78,14 @@ public class Main {
                    }
                 }else if(c==10||c==13){
                     System.out.print("\r\n");
-                   
+                      System.out.flush();
                     break;
 
                 }
                 else{
                     char ch=(char)c;
-                     
+                       System.out.print(ch);
+                System.out.flush();
                     inputbuffer.append(ch);
                     
                 }
