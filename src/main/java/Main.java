@@ -133,8 +133,8 @@ public class Main {
                 }
                 else{
                     char ch=(char)c;
-                      System.out.print(ch);
-                 System.out.flush();
+                //       System.out.print(ch);
+                //  System.out.flush();
                     inputbuffer.append(ch);
                      tabPending = false;
                       lastTabPrefix = null;
