@@ -44,6 +44,12 @@ public class Main {
              while(true){
                 int c=System.in.read();
                 if(c==9){
+                    String line = inputbuffer.toString();
+                    int spaceIdx = line.indexOf(' ');
+    if (spaceIdx != -1) {
+     
+        continue;
+    }
                     Set<String> allcommands=getAllCommands(builtins);
                     String currentinput=inputbuffer.toString();
                     List<String> candidates=new ArrayList<>();
@@ -54,13 +60,10 @@ public class Main {
     }
     Collections.sort(candidates);
     
-                    // if("echo".startsWith(currentinput)){
-                    //     candidates.add("echo");
-                    // }
-                    // if("exit".startsWith(currentinput)){
-                    //     candidates.add("exit");
-                    // }
-                    if(candidates.size()==1){
+                  if(candidates.isEmpty()){
+                    System.out.println("\u0007");
+                    System.out.flush();
+}                   else if(candidates.size()==1){
                         String matches=candidates.get(0);
                         String suffix=matches.substring(inputbuffer.length()) + " ";
                         System.out.print(suffix);
