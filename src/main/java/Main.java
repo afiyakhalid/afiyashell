@@ -14,16 +14,16 @@ public class Main {
        
       
         List<String> builtins=Arrays.asList("echo","exit","type","pwd","cd");
-        if (System.console() == null) {
+       boolean interactive = (System.console() != null) && hasTty();
+
+        if (!interactive) {
             Scanner scanner = new Scanner(System.in);
             while (scanner.hasNextLine()) {
                 System.out.print("$ ");
                 System.out.flush();
 
                 String input = scanner.nextLine().trim();
-                if (input.equals("exit")) {
-                    break; 
-                }
+                if (input.equals("exit")) break;
 
                 handleCommand(input, builtins);
             }
@@ -81,7 +81,14 @@ public class Main {
             handleCommand(input, builtins);
         }
     }
-        
+      private static boolean hasTty() {
+        try {
+            Path tty = Path.of("/dev/tty");
+            return Files.isReadable(tty) && Files.isWritable(tty);
+        } catch (Exception e) {
+            return false;
+        }
+    }  
 
    private static void handleCommand(String input, List<String> builtins) throws Exception {
         if (input.isEmpty()) return;
