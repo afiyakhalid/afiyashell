@@ -33,10 +33,10 @@ public class Main {
                     }
                     if(candidates.size()==1){
                         String matches=candidates.get(0);
-                        String suffix=matches.substring(inputbuffer.length()-1);
+                        String suffix=matches.substring(inputbuffer.length()) + " ";
                         System.out.print(suffix);
                         inputbuffer.append(suffix);
-                       
+                    
 
                     }
                 }else if (c==127) {
