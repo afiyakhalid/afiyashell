@@ -43,6 +43,8 @@ public class Main {
              StringBuilder inputbuffer=new StringBuilder();
              while(true){
                 int c=System.in.read();
+                String lastTabPrefix=null;
+                boolean tabPending=false;
                 if(c==9){
                     String line = inputbuffer.toString();
                     int spaceIdx = line.indexOf(' ');
@@ -63,19 +65,44 @@ public class Main {
                   if(candidates.isEmpty()){
                     System.out.print("\u0007");
                     System.out.flush();
+                    tabPending=false;
+                    lastTabPrefix=null;
 }                   else if(candidates.size()==1){
                         String matches=candidates.get(0);
                         String suffix=matches.substring(inputbuffer.length()) + " ";
                         System.out.print(suffix);
                         inputbuffer.append(suffix);
-                    
+                    tabPending = false;
+                    lastTabPrefix = null;
 
                     }
-                }else if (c==127) {
+                else{
+                    if(tabPending && line.equals(lastTabPrefix)){
+                        System.out.print("r\n");
+                        System.out.print(String.join("    ", candidates));
+                          System.out.print("r\n");
+                          System.out.print("$ " + line);
+                        System.out.flush();
+                        tabPending=false;
+                        lastTabPrefix=null;
+                    }else{
+                        
+                        System.out.print("\u0007");
+                        System.out.flush();
+                        tabPending=true;
+                        lastTabPrefix=line;
+
+
+                    }
+                    }
+                    continue;
+                    }else if (c==127) {
                    if(inputbuffer.length()>0){
                     inputbuffer.deleteCharAt(inputbuffer.length()-1);
                     System.out.print("\b \b");
                    }
+                    tabPending = false;
+                      lastTabPrefix = null;
                 }else if(c==10||c==13){
                     System.out.print("\r\n");
                       System.out.flush();
@@ -87,7 +114,8 @@ public class Main {
                        System.out.print(ch);
                 System.out.flush();
                     inputbuffer.append(ch);
-                    
+                     tabPending = false;
+                      lastTabPrefix = null;
                 }
              }
              setRawMode(false);
