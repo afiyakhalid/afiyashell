@@ -243,17 +243,30 @@ private static void handleCommand(String input, List<String> builtins, java.io.I
 // [Inside handleCommand]
 // [Inside handleCommand]
 if (input.contains("|")) {
-    // 1. Split by pipe to get raw command strings
     String[] parts = input.split("\\|");
-    List<String> rawCommands = new ArrayList<>();
-    
-    for (String part : parts) {
-        rawCommands.add(part.trim());
-    }
+        List<String> rawCommands = new ArrayList<>();
+        for (String part : parts) rawCommands.add(part.trim());
 
-    // 2. Run the pipeline using recursive handleCommand calls
-    runMultiPipeline(rawCommands, builtins, stdin, stdout);
-    return;
+        // Special-case: 2-command pipeline where both commands are external
+        if (rawCommands.size() == 2) {
+            String leftCmd = rawCommands.get(0);
+            String rightCmd = rawCommands.get(1);
+
+            String[] leftArgs = parseArguments(leftCmd);
+            String[] rightArgs = parseArguments(rightCmd);
+
+            boolean leftExternal = leftArgs.length > 0 && getpath(leftArgs[0]) != null;
+            boolean rightExternal = rightArgs.length > 0 && getpath(rightArgs[0]) != null;
+
+            if (leftExternal && rightExternal) {
+                runExternalPipe(leftArgs, rightArgs, stdin, stdout);
+                return;
+            }
+        }
+
+        // Fallback: your existing recursive/threaded pipeline for other cases
+        runMultiPipeline(rawCommands, builtins, stdin, stdout);
+        return;
 }
        
      if (input.startsWith("echo "))
@@ -714,16 +727,13 @@ private static void runMultiPipeline(List<String> commands, List<String> builtin
 
         try {
             if (isLast) {
-                // The last command writes to the actual stdout
                 nextOutput = stdout;
             } else {
-                // Create a pipe for intermediate commands
                 java.io.PipedOutputStream pos = new java.io.PipedOutputStream();
                 pipeIn = new java.io.PipedInputStream(pos);
                 nextOutput = pos;
             }
 
-            // Variables for the lambda scope
             InputStream threadIn = nextInput;
             OutputStream threadOut = nextOutput;
 
@@ -731,10 +741,10 @@ private static void runMultiPipeline(List<String> commands, List<String> builtin
                 try {
                     handleCommand(command, builtins, threadIn, threadOut);
                 } catch (Exception e) {
-                    // Ignore errors in threads
+                    e.printStackTrace();
                 } finally {
-                    // IMPORTANT: Close the output pipe so the NEXT command gets EOF
-                    if (!isLast) {
+                    // Close the WRITE end of the pipe so the NEXT command gets EOF
+                    if (!isLast && threadOut != System.out) {
                         try { threadOut.close(); } catch (IOException ignored) {}
                     }
                 }
@@ -742,8 +752,6 @@ private static void runMultiPipeline(List<String> commands, List<String> builtin
 
             t.start();
             threads.add(t);
-
-            // Prepare input for the next command in the loop
             nextInput = pipeIn;
 
         } catch (IOException e) {
@@ -751,11 +759,71 @@ private static void runMultiPipeline(List<String> commands, List<String> builtin
         }
     }
 
-    // Wait for all commands to finish
     for (Thread t : threads) {
         try {
             t.join();
         } catch (InterruptedException ignored) {}
+    }
+}
+private static void runExternalPipe(String[] leftArgs, String[] rightArgs, InputStream stdin, OutputStream stdout) throws Exception {
+    ProcessBuilder leftPb = new ProcessBuilder(leftArgs);
+    leftPb.directory(current.toFile());
+    leftPb.redirectError(ProcessBuilder.Redirect.INHERIT);
+
+    ProcessBuilder rightPb = new ProcessBuilder(rightArgs);
+    rightPb.directory(current.toFile());
+    rightPb.redirectError(ProcessBuilder.Redirect.INHERIT);
+
+    // Only need to care about left stdin. The pipeline will connect left stdout -> right stdin.
+    if (stdin == System.in) {
+        leftPb.redirectInput(ProcessBuilder.Redirect.INHERIT);
+    } else {
+        leftPb.redirectInput(ProcessBuilder.Redirect.PIPE);
+    }
+
+    // We need to read the final output ourselves (so we can flush early)
+    rightPb.redirectOutput(ProcessBuilder.Redirect.PIPE);
+
+    List<Process> processes = ProcessBuilder.startPipeline(Arrays.asList(leftPb, rightPb));
+    Process leftProc = processes.get(0);
+    Process rightProc = processes.get(processes.size() - 1);
+
+    // If stdin is piped (not System.in), feed it into the left process
+    if (stdin != System.in) {
+        new Thread(() -> {
+            try (OutputStream os = leftProc.getOutputStream()) {
+                stdin.transferTo(os);
+            } catch (IOException ignored) {
+            }
+        }).start();
+    }
+
+    // Read right output and FLUSH as lines arrive (fixes "no line received")
+    try (InputStream is = rightProc.getInputStream()) {
+        byte[] buf = new byte[8192];
+        int n;
+        while ((n = is.read(buf)) != -1) {
+            stdout.write(buf, 0, n);
+
+            // flush quickly once a newline is observed
+            for (int i = 0; i < n; i++) {
+                if (buf[i] == (byte) '\n') {
+                    stdout.flush();
+                    break;
+                }
+            }
+        }
+        stdout.flush();
+    }
+
+    // Wait for downstream (e.g. head) to finish
+    rightProc.waitFor();
+
+    // IMPORTANT: stop upstream (e.g. tail -f) so we don't hang forever
+    if (leftProc.isAlive()) {
+        leftProc.destroy();
+        leftProc.waitFor(200, TimeUnit.MILLISECONDS);
+        if (leftProc.isAlive()) leftProc.destroyForcibly();
     }
 }
     }
