@@ -648,57 +648,132 @@ private static String getpath(String command){
     }
     return null;
 }
+// private static void runExternalPipe(String[] leftArgs, String[] rightArgs, InputStream stdin, OutputStream stdout) throws Exception {
+//         ProcessBuilder leftPb = new ProcessBuilder(leftArgs);
+//         leftPb.directory(current.toFile());
+//         leftPb.redirectError(ProcessBuilder.Redirect.INHERIT);
+
+//         ProcessBuilder rightPb = new ProcessBuilder(rightArgs);
+//         rightPb.directory(current.toFile());
+//         rightPb.redirectError(ProcessBuilder.Redirect.INHERIT);
+
+//         if (stdin == System.in) {
+//             leftPb.redirectInput(ProcessBuilder.Redirect.INHERIT);
+//         } else {
+          
+//             leftPb.redirectInput(ProcessBuilder.Redirect.PIPE);
+//         }
+
+       
+//         rightPb.redirectOutput(ProcessBuilder.Redirect.PIPE);
+
+      
+//         List<Process> processes = ProcessBuilder.startPipeline(Arrays.asList(leftPb, rightPb));
+        
+//         Process leftProc = processes.get(0);
+//         Process rightProc = processes.get(processes.size() - 1);
+
+       
+//         if (stdin != System.in) {
+//             new Thread(() -> {
+//                 try (OutputStream os = leftProc.getOutputStream()) {
+//                     stdin.transferTo(os);
+//                     os.close(); 
+//                 } catch (IOException ignored) {}
+//             }).start();
+//         }
+
+        
+//         try (InputStream is = rightProc.getInputStream()) {
+//             is.transferTo(stdout);
+//         } catch (IOException ignored) {}
+
+      
+//         rightProc.waitFor();
+        
+        
+//         if (leftProc.isAlive()) {
+//             leftProc.destroyForcibly();
+//         }
+//     }
+// ...existing code...
 private static void runExternalPipe(String[] leftArgs, String[] rightArgs, InputStream stdin, OutputStream stdout) throws Exception {
-        ProcessBuilder leftPb = new ProcessBuilder(leftArgs);
-        leftPb.directory(current.toFile());
-        leftPb.redirectError(ProcessBuilder.Redirect.INHERIT);
+    ProcessBuilder leftPb = new ProcessBuilder(leftArgs);
+    leftPb.directory(current.toFile());
+    leftPb.redirectError(ProcessBuilder.Redirect.INHERIT);
 
-        ProcessBuilder rightPb = new ProcessBuilder(rightArgs);
-        rightPb.directory(current.toFile());
-        rightPb.redirectError(ProcessBuilder.Redirect.INHERIT);
+    ProcessBuilder rightPb = new ProcessBuilder(rightArgs);
+    rightPb.directory(current.toFile());
+    rightPb.redirectError(ProcessBuilder.Redirect.INHERIT);
 
-        // 1. Configure Input for the Left Command
-        if (stdin == System.in) {
-            leftPb.redirectInput(ProcessBuilder.Redirect.INHERIT);
-        } else {
-            // If the input isn't System.in, we need to pipe it manually later
-            leftPb.redirectInput(ProcessBuilder.Redirect.PIPE);
-        }
+    leftPb.redirectOutput(ProcessBuilder.Redirect.PIPE);
+    rightPb.redirectInput(ProcessBuilder.Redirect.PIPE);
+    rightPb.redirectOutput(ProcessBuilder.Redirect.PIPE);
 
-        // 2. Configure Output for the Right Command
-        // We capture this so we can write it to the shell's stdout
-        rightPb.redirectOutput(ProcessBuilder.Redirect.PIPE);
-
-        // 3. Start the Pipeline using the OS-level pipe capability (Java 9+)
-        // This connects leftPb.stdout -> rightPb.stdin automatically
-        List<Process> processes = ProcessBuilder.startPipeline(Arrays.asList(leftPb, rightPb));
-        
-        Process leftProc = processes.get(0);
-        Process rightProc = processes.get(processes.size() - 1);
-
-        // 4. Handle Input (if not from System.in)
-        if (stdin != System.in) {
-            new Thread(() -> {
-                try (OutputStream os = leftProc.getOutputStream()) {
-                    stdin.transferTo(os);
-                    os.close(); 
-                } catch (IOException ignored) {}
-            }).start();
-        }
-
-        // 5. Handle Output (Read from Right command -> Write to Shell stdout)
-        // We run this in the main thread to ensure we don't finish until output is done
-        try (InputStream is = rightProc.getInputStream()) {
-            is.transferTo(stdout);
-        } catch (IOException ignored) {}
-
-        // 6. Wait for the consumer (head) to finish
-        rightProc.waitFor();
-        
-        // 7. Force kill the producer (tail -f) if it's still running
-        // effectively simulating the SIGPIPE behavior 
-        if (leftProc.isAlive()) {
-            leftProc.destroyForcibly();
-        }
+    if (stdin == System.in) {
+        leftPb.redirectInput(ProcessBuilder.Redirect.INHERIT);
+    } else {
+        leftPb.redirectInput(ProcessBuilder.Redirect.PIPE);
     }
+
+    Process leftProc = leftPb.start();
+    Process rightProc = rightPb.start();
+
+    if (stdin != System.in) {
+        new Thread(() -> {
+            try (OutputStream procIn = leftProc.getOutputStream()) {
+                stdin.transferTo(procIn);
+            } catch (IOException ignored) {
+            }
+        }).start();
+    } else {
+        try { leftProc.getOutputStream().close(); } catch (Exception ignored) {}
+    }
+
+    Thread pump = new Thread(() -> {
+        try (InputStream fromLeft = leftProc.getInputStream();
+             OutputStream toRight = rightProc.getOutputStream()) {
+            fromLeft.transferTo(toRight);
+        } catch (IOException ignored) {
+        } finally {
+            try { rightProc.getOutputStream().close(); } catch (Exception ignored) {}
+        }
+    });
+    pump.start();
+
+    Thread outPump = new Thread(() -> {
+        try (InputStream fromRight = rightProc.getInputStream()) {
+            byte[] buf = new byte[8192];
+            int n;
+            while ((n = fromRight.read(buf)) != -1) {
+                stdout.write(buf, 0, n);
+
+                // Flush early so the tester can see lines immediately.
+                if (stdout instanceof java.io.Flushable f) {
+                    // flush if chunk contains a newline (common for line output)
+                    boolean hasNewline = false;
+                    for (int i = 0; i < n; i++) {
+                        if (buf[i] == (byte) '\n') { hasNewline = true; break; }
+                    }
+                    if (hasNewline) f.flush();
+                }
+            }
+            if (stdout instanceof java.io.Flushable f) f.flush();
+        } catch (IOException ignored) {
+        }
+    });
+    outPump.start();
+
+    rightProc.waitFor();
+
+    leftProc.destroy();
+    leftProc.waitFor(500, TimeUnit.MILLISECONDS);
+
+    // No timeouts: make sure everything is drained
+    pump.join();
+    outPump.join();
+
+    if (stdout instanceof java.io.Flushable f) f.flush();
+}
+// ...existing code...
     }
