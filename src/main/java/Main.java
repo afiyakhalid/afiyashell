@@ -689,4 +689,3 @@ private static void runExternalPipe(String[] leftArgs, String[] rightArgs, Input
          if (stdout instanceof java.io.Flushable f) f.flush();
 }
     }
-}
