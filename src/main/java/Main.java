@@ -234,7 +234,7 @@ else{
                 }
 
             
-        }else if(input.equals("|")){
+        }else if(input.contains("|")){
             String[] commands = input.split("\\|");
     List<ProcessBuilder> builders = new ArrayList<>();
 
@@ -263,6 +263,7 @@ else{
     } catch (IOException | InterruptedException e) {
             e.printStackTrace();
     }
+    return;
 
             }
         
