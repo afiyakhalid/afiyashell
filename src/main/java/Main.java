@@ -93,7 +93,7 @@ public class Main {
                     lastTabPrefix=null;
 }                   else if(candidates.size()==1){
                         String matches=candidates.get(0);
-                        String suffix=matches.substring(inputbuffer.length()) + " ";
+                       String suffix = matches.substring(inputbuffer.length()) + " ";
                         System.out.print(suffix);
                         inputbuffer.append(suffix);
                     tabPending = false;
@@ -173,24 +173,24 @@ public class Main {
         }
     }
       private static boolean hasTty() {
-        // try {
-        //     Path tty = Path.of("/dev/tty");
-        //     return Files.isReadable(tty) && Files.isWritable(tty);
-        // } catch (Exception e) {
-        //     return false;
-        // }
-         String os = System.getProperty("os.name", "").toLowerCase();
-    if (os.contains("win")) {
-        // Best we can do on Windows.
-        return System.console() != null;
-    }
+        try {
+            Path tty = Path.of("/dev/tty");
+            return Files.isReadable(tty) && Files.isWritable(tty);
+        } catch (Exception e) {
+            return false;
+        }
+    //      String os = System.getProperty("os.name", "").toLowerCase();
+    // if (os.contains("win")) {
+    //     // Best we can do on Windows.
+    //     return System.console() != null;
+    // }
 
-    try {
-        Process p = new ProcessBuilder("sh", "-c", "test -t 0").start();
-        return p.waitFor() == 0;
-    } catch (Exception e) {
-        return false;
-    }
+    // try {
+    //     Process p = new ProcessBuilder("sh", "-c", "test -t 0").start();
+    //     return p.waitFor() == 0;
+    // } catch (Exception e) {
+    //     return false;
+    // }
         
         
        
@@ -648,132 +648,52 @@ private static String getpath(String command){
     }
     return null;
 }
-// private static void runExternalPipe(String[] leftArgs, String[] rightArgs, InputStream stdin, OutputStream stdout) throws Exception {
-//         ProcessBuilder leftPb = new ProcessBuilder(leftArgs);
-//         leftPb.directory(current.toFile());
-//         leftPb.redirectError(ProcessBuilder.Redirect.INHERIT);
-
-//         ProcessBuilder rightPb = new ProcessBuilder(rightArgs);
-//         rightPb.directory(current.toFile());
-//         rightPb.redirectError(ProcessBuilder.Redirect.INHERIT);
-
-//         if (stdin == System.in) {
-//             leftPb.redirectInput(ProcessBuilder.Redirect.INHERIT);
-//         } else {
-          
-//             leftPb.redirectInput(ProcessBuilder.Redirect.PIPE);
-//         }
-
-       
-//         rightPb.redirectOutput(ProcessBuilder.Redirect.PIPE);
-
-      
-//         List<Process> processes = ProcessBuilder.startPipeline(Arrays.asList(leftPb, rightPb));
-        
-//         Process leftProc = processes.get(0);
-//         Process rightProc = processes.get(processes.size() - 1);
-
-       
-//         if (stdin != System.in) {
-//             new Thread(() -> {
-//                 try (OutputStream os = leftProc.getOutputStream()) {
-//                     stdin.transferTo(os);
-//                     os.close(); 
-//                 } catch (IOException ignored) {}
-//             }).start();
-//         }
-
-        
-//         try (InputStream is = rightProc.getInputStream()) {
-//             is.transferTo(stdout);
-//         } catch (IOException ignored) {}
-
-      
-//         rightProc.waitFor();
-        
-        
-//         if (leftProc.isAlive()) {
-//             leftProc.destroyForcibly();
-//         }
-//     }
-// ...existing code...
 private static void runExternalPipe(String[] leftArgs, String[] rightArgs, InputStream stdin, OutputStream stdout) throws Exception {
-    ProcessBuilder leftPb = new ProcessBuilder(leftArgs);
-    leftPb.directory(current.toFile());
-    leftPb.redirectError(ProcessBuilder.Redirect.INHERIT);
+        ProcessBuilder leftPb = new ProcessBuilder(leftArgs);
+        leftPb.directory(current.toFile());
+        leftPb.redirectError(ProcessBuilder.Redirect.INHERIT);
 
-    ProcessBuilder rightPb = new ProcessBuilder(rightArgs);
-    rightPb.directory(current.toFile());
-    rightPb.redirectError(ProcessBuilder.Redirect.INHERIT);
+        ProcessBuilder rightPb = new ProcessBuilder(rightArgs);
+        rightPb.directory(current.toFile());
+        rightPb.redirectError(ProcessBuilder.Redirect.INHERIT);
 
-    leftPb.redirectOutput(ProcessBuilder.Redirect.PIPE);
-    rightPb.redirectInput(ProcessBuilder.Redirect.PIPE);
-    rightPb.redirectOutput(ProcessBuilder.Redirect.PIPE);
-
-    if (stdin == System.in) {
-        leftPb.redirectInput(ProcessBuilder.Redirect.INHERIT);
-    } else {
-        leftPb.redirectInput(ProcessBuilder.Redirect.PIPE);
-    }
-
-    Process leftProc = leftPb.start();
-    Process rightProc = rightPb.start();
-
-    if (stdin != System.in) {
-        new Thread(() -> {
-            try (OutputStream procIn = leftProc.getOutputStream()) {
-                stdin.transferTo(procIn);
-            } catch (IOException ignored) {
-            }
-        }).start();
-    } else {
-        try { leftProc.getOutputStream().close(); } catch (Exception ignored) {}
-    }
-
-    Thread pump = new Thread(() -> {
-        try (InputStream fromLeft = leftProc.getInputStream();
-             OutputStream toRight = rightProc.getOutputStream()) {
-            fromLeft.transferTo(toRight);
-        } catch (IOException ignored) {
-        } finally {
-            try { rightProc.getOutputStream().close(); } catch (Exception ignored) {}
+        if (stdin == System.in) {
+            leftPb.redirectInput(ProcessBuilder.Redirect.INHERIT);
+        } else {
+          
+            leftPb.redirectInput(ProcessBuilder.Redirect.PIPE);
         }
-    });
-    pump.start();
 
-    Thread outPump = new Thread(() -> {
-        try (InputStream fromRight = rightProc.getInputStream()) {
-            byte[] buf = new byte[8192];
-            int n;
-            while ((n = fromRight.read(buf)) != -1) {
-                stdout.write(buf, 0, n);
+       
+        rightPb.redirectOutput(ProcessBuilder.Redirect.PIPE);
 
-                // Flush early so the tester can see lines immediately.
-                if (stdout instanceof java.io.Flushable f) {
-                    // flush if chunk contains a newline (common for line output)
-                    boolean hasNewline = false;
-                    for (int i = 0; i < n; i++) {
-                        if (buf[i] == (byte) '\n') { hasNewline = true; break; }
-                    }
-                    if (hasNewline) f.flush();
-                }
-            }
-            if (stdout instanceof java.io.Flushable f) f.flush();
-        } catch (IOException ignored) {
+      
+        List<Process> processes = ProcessBuilder.startPipeline(Arrays.asList(leftPb, rightPb));
+        
+        Process leftProc = processes.get(0);
+        Process rightProc = processes.get(processes.size() - 1);
+
+       
+        if (stdin != System.in) {
+            new Thread(() -> {
+                try (OutputStream os = leftProc.getOutputStream()) {
+                    stdin.transferTo(os);
+                    os.close(); 
+                } catch (IOException ignored) {}
+            }).start();
         }
-    });
-    outPump.start();
 
-    rightProc.waitFor();
+        
+        try (InputStream is = rightProc.getInputStream()) {
+            is.transferTo(stdout);
+        } catch (IOException ignored) {}
 
-    leftProc.destroy();
-    leftProc.waitFor(500, TimeUnit.MILLISECONDS);
-
-    // No timeouts: make sure everything is drained
-    pump.join();
-    outPump.join();
-
-    if (stdout instanceof java.io.Flushable f) f.flush();
-}
-// ...existing code...
+      
+        rightProc.waitFor();
+        
+        
+        if (leftProc.isAlive()) {
+            leftProc.destroyForcibly();
+        }
+    }
     }
