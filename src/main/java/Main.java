@@ -657,62 +657,48 @@ private static void runExternalPipe(String[] leftArgs, String[] rightArgs, Input
         rightPb.directory(current.toFile());
         rightPb.redirectError(ProcessBuilder.Redirect.INHERIT);
 
-     
-        leftPb.redirectOutput(ProcessBuilder.Redirect.PIPE);
-        rightPb.redirectInput(ProcessBuilder.Redirect.PIPE);
-        rightPb.redirectOutput(ProcessBuilder.Redirect.PIPE);
-
+        // 1. Configure Input for the Left Command
         if (stdin == System.in) {
             leftPb.redirectInput(ProcessBuilder.Redirect.INHERIT);
         } else {
+            // If the input isn't System.in, we need to pipe it manually later
             leftPb.redirectInput(ProcessBuilder.Redirect.PIPE);
         }
 
-        Process leftProc = leftPb.start();
-        Process rightProc = rightPb.start();
+        // 2. Configure Output for the Right Command
+        // We capture this so we can write it to the shell's stdout
+        rightPb.redirectOutput(ProcessBuilder.Redirect.PIPE);
 
-       
+        // 3. Start the Pipeline using the OS-level pipe capability (Java 9+)
+        // This connects leftPb.stdout -> rightPb.stdin automatically
+        List<Process> processes = ProcessBuilder.startPipeline(Arrays.asList(leftPb, rightPb));
+        
+        Process leftProc = processes.get(0);
+        Process rightProc = processes.get(processes.size() - 1);
+
+        // 4. Handle Input (if not from System.in)
         if (stdin != System.in) {
             new Thread(() -> {
-                try (OutputStream procIn = leftProc.getOutputStream()) {
-                    stdin.transferTo(procIn);
-                } catch (IOException ignored) {
-                }
+                try (OutputStream os = leftProc.getOutputStream()) {
+                    stdin.transferTo(os);
+                    os.close(); 
+                } catch (IOException ignored) {}
             }).start();
-        } else {
-         
-            try { leftProc.getOutputStream().close(); } catch (Exception ignored) {}
         }
 
-        Thread pump = new Thread(() -> {
-            try (InputStream fromLeft = leftProc.getInputStream();
-                 OutputStream toRight = rightProc.getOutputStream()) {
-                fromLeft.transferTo(toRight);
-            } catch (IOException ignored) {
-             
-            } finally {
-                try { rightProc.getOutputStream().close(); } catch (Exception ignored) {}
-            }
-        });
-        pump.start();
+        // 5. Handle Output (Read from Right command -> Write to Shell stdout)
+        // We run this in the main thread to ensure we don't finish until output is done
+        try (InputStream is = rightProc.getInputStream()) {
+            is.transferTo(stdout);
+        } catch (IOException ignored) {}
 
-        
-        Thread outPump = new Thread(() -> {
-            try (InputStream fromRight = rightProc.getInputStream()) {
-                fromRight.transferTo(stdout);
-            } catch (IOException ignored) {
-            }
-        });
-        outPump.start();
-
-      
+        // 6. Wait for the consumer (head) to finish
         rightProc.waitFor();
-
-        leftProc.destroy(); 
-        leftProc.waitFor(500, TimeUnit.MILLISECONDS);
-
-        pump.join(500);
-        outPump.join(500);
-         if (stdout instanceof java.io.Flushable f) f.flush();
-}
+        
+        // 7. Force kill the producer (tail -f) if it's still running
+        // effectively simulating the SIGPIPE behavior 
+        if (leftProc.isAlive()) {
+            leftProc.destroyForcibly();
+        }
+    }
     }
