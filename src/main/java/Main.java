@@ -57,16 +57,7 @@ public class Main {
     }
     return;
         }
-// if (!interactive) {
-//     Scanner scanner = new Scanner(System.in);
-//     while (scanner.hasNextLine()) {
-//         String input = scanner.nextLine().trim();
-//         if (input.equals("exit")) break;
 
-//         handleCommand(input, builtins, System.in, System.out);
-//     }
-//     return;
-// }
         
         while(true){
           
@@ -209,71 +200,64 @@ public class Main {
 private static void handleCommand(String input, List<String> builtins, java.io.InputStream stdin, java.io.OutputStream stdout) throws Exception {
     java.io.PrintStream out = new java.io.PrintStream(stdout, true, "UTF-8");
         if (input.isEmpty()) return;
-//    if (input.contains("|")) {
-//             String[] parts = input.split("\\|", 2); 
-//             String sourceCmd = parts[0].trim();
-//             String destCmd = parts[1].trim();
 
+// if (input.contains("|")) {
+//             String[] parts = input.split("\\|", 2);
+//             String left = parts[0].trim();
+//             String right = parts[1].trim();
+
+//             // If both sides are external commands, run as real processes and stream between them.
+//             String[] leftArgs = parseArguments(left);
+//             String[] rightArgs = parseArguments(right);
+
+//             boolean leftExternal = leftArgs.length > 0 && getpath(leftArgs[0]) != null;
+//             boolean rightExternal = rightArgs.length > 0 && getpath(rightArgs[0]) != null;
+
+//             if (leftExternal && rightExternal) {
+//                 runExternalPipe(leftArgs, rightArgs, stdin, stdout);
+//                 return;
+//             }
+
+//             // Fallback to your old recursive piping for non-external cases (finite output)
 //             java.io.PipedOutputStream pipeOut = new java.io.PipedOutputStream();
 //             java.io.PipedInputStream pipeIn = new java.io.PipedInputStream(pipeOut);
 
-           
 //             Thread sourceThread = new Thread(() -> {
-//                 try {
-               
-//                     handleCommand(sourceCmd, builtins, stdin, pipeOut);
-                    
-//                     pipeOut.close(); 
-//                 } catch (Exception e) {
-//                     e.printStackTrace();
+//                  try {
+//                     handleCommand(left, builtins, stdin, pipeOut);
+//                 } catch (Exception ignored) {
+//                 } finally {
+//                     try { pipeOut.close(); } catch (Exception ignored) {}
 //                 }
 //             });
 //             sourceThread.start();
 
-            
-//             handleCommand(destCmd, builtins, pipeIn, stdout);
+//             handleCommand(right, builtins, pipeIn, stdout);
 
-    
-//             sourceThread.join();
+//             // IMPORTANT: don't deadlock forever waiting for a command like `tail -f`
+//             sourceThread.join(200);
 //             return;
 //         }
+// [Inside handleCommand]
 if (input.contains("|")) {
-            String[] parts = input.split("\\|", 2);
-            String left = parts[0].trim();
-            String right = parts[1].trim();
+   
+    String[] parts = input.split("\\|");
+    List<String[]> pipelineArgs = new ArrayList<>();
 
-            // If both sides are external commands, run as real processes and stream between them.
-            String[] leftArgs = parseArguments(left);
-            String[] rightArgs = parseArguments(right);
+    
+    for (String part : parts) {
+        pipelineArgs.add(parseArguments(part.trim()));
+    }
 
-            boolean leftExternal = leftArgs.length > 0 && getpath(leftArgs[0]) != null;
-            boolean rightExternal = rightArgs.length > 0 && getpath(rightArgs[0]) != null;
-
-            if (leftExternal && rightExternal) {
-                runExternalPipe(leftArgs, rightArgs, stdin, stdout);
-                return;
-            }
-
-            // Fallback to your old recursive piping for non-external cases (finite output)
-            java.io.PipedOutputStream pipeOut = new java.io.PipedOutputStream();
-            java.io.PipedInputStream pipeIn = new java.io.PipedInputStream(pipeOut);
-
-            Thread sourceThread = new Thread(() -> {
-                 try {
-                    handleCommand(left, builtins, stdin, pipeOut);
-                } catch (Exception ignored) {
-                } finally {
-                    try { pipeOut.close(); } catch (Exception ignored) {}
-                }
-            });
-            sourceThread.start();
-
-            handleCommand(right, builtins, pipeIn, stdout);
-
-            // IMPORTANT: don't deadlock forever waiting for a command like `tail -f`
-            sourceThread.join(200);
-            return;
-        }
+    try {
+        runMultiPipeline(pipelineArgs, stdin, stdout);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    
+    
+    return;
+}
        
      if (input.startsWith("echo "))
         {
@@ -658,52 +642,102 @@ private static String getpath(String command){
     }
     return null;
 }
-private static void runExternalPipe(String[] leftArgs, String[] rightArgs, InputStream stdin, OutputStream stdout) throws Exception {
-        ProcessBuilder leftPb = new ProcessBuilder(leftArgs);
-        leftPb.directory(current.toFile());
-        leftPb.redirectError(ProcessBuilder.Redirect.INHERIT);
+// private static void runExternalPipe(String[] leftArgs, String[] rightArgs, InputStream stdin, OutputStream stdout) throws Exception {
+//         ProcessBuilder leftPb = new ProcessBuilder(leftArgs);
+//         leftPb.directory(current.toFile());
+//         leftPb.redirectError(ProcessBuilder.Redirect.INHERIT);
 
-        ProcessBuilder rightPb = new ProcessBuilder(rightArgs);
-        rightPb.directory(current.toFile());
-        rightPb.redirectError(ProcessBuilder.Redirect.INHERIT);
+//         ProcessBuilder rightPb = new ProcessBuilder(rightArgs);
+//         rightPb.directory(current.toFile());
+//         rightPb.redirectError(ProcessBuilder.Redirect.INHERIT);
 
-        if (stdin == System.in) {
-            leftPb.redirectInput(ProcessBuilder.Redirect.INHERIT);
-        } else {
+//         if (stdin == System.in) {
+//             leftPb.redirectInput(ProcessBuilder.Redirect.INHERIT);
+//         } else {
           
-            leftPb.redirectInput(ProcessBuilder.Redirect.PIPE);
-        }
+//             leftPb.redirectInput(ProcessBuilder.Redirect.PIPE);
+//         }
 
        
-        rightPb.redirectOutput(ProcessBuilder.Redirect.PIPE);
+//         rightPb.redirectOutput(ProcessBuilder.Redirect.PIPE);
 
       
-        List<Process> processes = ProcessBuilder.startPipeline(Arrays.asList(leftPb, rightPb));
+//         List<Process> processes = ProcessBuilder.startPipeline(Arrays.asList(leftPb, rightPb));
         
-        Process leftProc = processes.get(0);
-        Process rightProc = processes.get(processes.size() - 1);
+//         Process leftProc = processes.get(0);
+//         Process rightProc = processes.get(processes.size() - 1);
 
        
-        if (stdin != System.in) {
-            new Thread(() -> {
-                try (OutputStream os = leftProc.getOutputStream()) {
-                    stdin.transferTo(os);
-                    os.close(); 
-                } catch (IOException ignored) {}
-            }).start();
-        }
+//         if (stdin != System.in) {
+//             new Thread(() -> {
+//                 try (OutputStream os = leftProc.getOutputStream()) {
+//                     stdin.transferTo(os);
+//                     os.close(); 
+//                 } catch (IOException ignored) {}
+//             }).start();
+//         }
 
         
-        try (InputStream is = rightProc.getInputStream()) {
-            is.transferTo(stdout);
-        } catch (IOException ignored) {}
+//         try (InputStream is = rightProc.getInputStream()) {
+//             is.transferTo(stdout);
+//         } catch (IOException ignored) {}
 
       
-        rightProc.waitFor();
+//         rightProc.waitFor();
         
         
-        if (leftProc.isAlive()) {
-            leftProc.destroyForcibly();
-        }
+//         if (leftProc.isAlive()) {
+//             leftProc.destroyForcibly();
+//         }
+//     }
+private static void runMultiPipeline(List<String[]> pipelineArgs, InputStream stdin, OutputStream stdout) throws Exception {
+    List<ProcessBuilder> builders = new ArrayList<>();
+
+  
+    for (String[] args : pipelineArgs) {
+        if (args.length == 0) continue; 
+        
+        ProcessBuilder pb = new ProcessBuilder(args);
+        pb.directory(current.toFile());
+        pb.redirectError(ProcessBuilder.Redirect.INHERIT); 
+        builders.add(pb);
     }
+
+    if (builders.isEmpty()) return;
+
+    if (stdin == System.in) {
+        builders.get(0).redirectInput(ProcessBuilder.Redirect.INHERIT);
+    } else {
+      
+        builders.get(0).redirectInput(ProcessBuilder.Redirect.PIPE);
+    }
+
+    builders.get(builders.size() - 1).redirectOutput(ProcessBuilder.Redirect.PIPE);
+
+    
+    List<Process> processes = ProcessBuilder.startPipeline(builders);
+    
+  
+    Process firstProc = processes.get(0);
+    Process lastProc = processes.get(processes.size() - 1);
+
+   
+    if (stdin != System.in) {
+        new Thread(() -> {
+            try (OutputStream os = firstProc.getOutputStream()) {
+                stdin.transferTo(os);
+                os.close();
+            } catch (IOException ignored) {}
+        }).start();
+    }
+
+    try (InputStream is = lastProc.getInputStream()) {
+        is.transferTo(stdout);
+    } catch (IOException ignored) {}
+
+    
+    for (Process p : processes) {
+        p.waitFor();
+    }
+}
     }
