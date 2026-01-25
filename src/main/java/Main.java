@@ -682,9 +682,11 @@ private static void runExternalPipe(String[] leftArgs, String[] rightArgs, Input
         rightProc.waitFor();
 
         leftProc.destroy(); 
-        leftProc.waitFor(200, TimeUnit.MILLISECONDS);
+        leftProc.waitFor(500, TimeUnit.MILLISECONDS);
 
-        pump.join(200);
-        outPump.join(200);
+        pump.join(500);
+        outPump.join(500);
+         if (stdout instanceof java.io.Flushable f) f.flush();
+}
     }
 }
