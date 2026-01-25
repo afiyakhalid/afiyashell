@@ -470,46 +470,60 @@ else{
                     Process process = pb.start();
 
                   
-                //     if (stdin.available() > 0) {
-                //         try (java.io.OutputStream procIn = process.getOutputStream()) {
-                //             stdin.transferTo(procIn);
-                //         }
-                //     } else {
-                       
-                //         process.getOutputStream().close();
-                //     }
-
-                //     if (manualOutput) {
-                //         process.getInputStream().transferTo(stdout);
-                //     }
-
-                //     process.waitFor();
-                // } else {
-                    
-                //     out.println(command + ": not found");
-                // }
-                if (stdin != System.in) {
-       new Thread(() -> {
-            try (java.io.OutputStream procIn = process.getOutputStream()) {
-                stdin.transferTo(procIn);
-            } catch (java.io.IOException e) {
+               
+//                 if (stdin != System.in) {
+//        new Thread(() -> {
+//             try (java.io.OutputStream procIn = process.getOutputStream()) {
+//                 stdin.transferTo(procIn);
+//             } catch (java.io.IOException e) {
                 
-            }
-        }).start();
-    }
+//             }
+//         }).start();
+//     }
    
 
-   if (manualOutput) {
-        try {
-            process.getInputStream().transferTo(stdout);
-        } catch (IOException e) {
+//    if (manualOutput) {
+//         try {
+//             process.getInputStream().transferTo(stdout);
+//         } catch (IOException e) {
             
-            process.destroy(); 
-        }
-    }
+//             process.destroy(); 
+//         }
+//     }
 
-    process.waitFor();
-} else {
+//     process.waitFor();
+// } 
+if (stdin != System.in) {
+    new Thread(() -> {
+        try (java.io.OutputStream procIn = process.getOutputStream()) {
+            stdin.transferTo(procIn);
+            procIn.close(); // Close process input when done
+        } catch (java.io.IOException e) {
+            // Pipe broken, stop writing
+        }
+    }).start();
+}
+
+if (manualOutput) {
+    try (InputStream pis = process.getInputStream()) {
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        // Read loop that Flushes immediately
+        while ((bytesRead = pis.read(buffer)) != -1) {
+            stdout.write(buffer, 0, bytesRead);
+            stdout.flush(); // FORCE DATA TO NEXT COMMAND
+        }
+    } catch (IOException e) {
+        // PREVIOUS CODE DEADLOCK FIX:
+        // If we get here, the 'next' command (like head) closed the pipe.
+        // We must kill this process (like tail) so it doesn't run forever.
+        process.destroyForcibly();
+    }
+}
+
+// Wait for process to die
+process.waitFor();}
+else {
     out.println(command + ": not found");
 }
                 }
@@ -700,38 +714,36 @@ private static void runMultiPipeline(List<String> commands, List<String> builtin
 
         try {
             if (isLast) {
-                // The last command writes to the actual screen (stdout)
+                // The last command writes to the actual stdout
                 nextOutput = stdout;
             } else {
-                // Create a pipe for the next command to read from
-                PipedOutputStream pos = new PipedOutputStream();
-                // Connect the input immediately (must be done before writing)
-                pipeIn = new PipedInputStream(pos);
+                // Create a pipe for intermediate commands
+                java.io.PipedOutputStream pos = new java.io.PipedOutputStream();
+                pipeIn = new java.io.PipedInputStream(pos);
                 nextOutput = pos;
             }
 
-            // Capture variables for the thread
+            // Variables for the lambda scope
             InputStream threadIn = nextInput;
             OutputStream threadOut = nextOutput;
 
             Thread t = new Thread(() -> {
                 try {
-                    // RECURSION: Let handleCommand decide if it's builtin or external!
                     handleCommand(command, builtins, threadIn, threadOut);
                 } catch (Exception e) {
-                    // Ignore broken pipes (e.g., if 'head' closes input early, 'ls' might fail writing)
+                    // Ignore errors in threads
                 } finally {
-                    // IMPORTANT: Close the pipe output so the next command knows data is finished
+                    // IMPORTANT: Close the output pipe so the NEXT command gets EOF
                     if (!isLast) {
                         try { threadOut.close(); } catch (IOException ignored) {}
                     }
                 }
             });
-            
+
             t.start();
             threads.add(t);
 
-            // Prepare input for the next loop iteration
+            // Prepare input for the next command in the loop
             nextInput = pipeIn;
 
         } catch (IOException e) {
