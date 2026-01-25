@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Stream;
+import java.lang.ProcessBuilder.Redirect;
+import java.io.IOException;
 
 
 
@@ -232,7 +234,37 @@ else{
                 }
 
             
-        }
+        }else if(input.equals("|")){
+            String[] commands = input.split("\\|");
+    List<ProcessBuilder> builders = new ArrayList<>();
+
+    for (String cmd : commands) {
+       
+        String[] args = cmd.trim().split("\\s+");
+        
+        ProcessBuilder pb = new ProcessBuilder(args);
+        
+       
+        pb.redirectError(Redirect.INHERIT);
+        
+        builders.add(pb);
+    }
+
+
+    builders.get(0).redirectInput(Redirect.INHERIT);
+    
+    
+    builders.get(builders.size() - 1).redirectOutput(Redirect.INHERIT);
+    try {
+        List<Process> processes=ProcessBuilder.startPipeline(builders);
+        Process lastProcess = processes.get(processes.size() - 1);
+        lastProcess.waitFor();
+        
+    } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+    }
+
+            }
         
                 else if (input.startsWith("type ")) {
                 String commandtocheck = input.substring(5);
