@@ -176,32 +176,14 @@ public class Main {
         }
     }
       private static boolean hasTty() {
-        // try {
-        //     Path tty = Path.of("/dev/tty");
-        //     return Files.isReadable(tty) && Files.isWritable(tty);
-        // } catch (Exception e) {
-        //     return false;
-        // }
-        // return System.console() != null;
-    String os = System.getProperty("os.name", "").toLowerCase();
-    if (os.contains("win")) {
-        // Windows: simplest usable check
-        return System.console() != null;
-    }
-
-    // Linux/macOS: check whether stdin (fd 0) is a TTY
-    try {
-        // Prefer /bin/sh if present
-        if (Files.exists(Path.of("/bin/sh"))) {
-            Process p = new ProcessBuilder("/bin/sh", "-c", "test -t 0").start();
-            return p.waitFor() == 0;
+        try {
+            Path tty = Path.of("/dev/tty");
+            return Files.isReadable(tty) && Files.isWritable(tty);
+        } catch (Exception e) {
+            return false;
         }
-
-        // Fallback: if sh isn't available, use console presence
-        return System.console() != null;
-    } catch (Exception e) {
-        return false;
-    }
+       
+    
         
        
     }  
