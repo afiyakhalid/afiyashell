@@ -153,12 +153,13 @@ public class Main {
         }
     }
       private static boolean hasTty() {
-        try {
-            Path tty = Path.of("/dev/tty");
-            return Files.isReadable(tty) && Files.isWritable(tty);
-        } catch (Exception e) {
-            return false;
-        }
+        // try {
+        //     Path tty = Path.of("/dev/tty");
+        //     return Files.isReadable(tty) && Files.isWritable(tty);
+        // } catch (Exception e) {
+        //     return false;
+        // }
+        return System.console() != null;
        
     }  
 
