@@ -28,20 +28,35 @@ public class Main {
      boolean interactive = hasTty();
         
 
-        if (!interactive) {
-            Scanner scanner = new Scanner(System.in);
-            while (scanner.hasNextLine()) {
+        // if (!interactive) {
+        //     Scanner scanner = new Scanner(System.in);
+        //     while (scanner.hasNextLine()) {
                 
-                System.out.print("$ ");
-                System.out.flush();
+        //         System.out.print("$ ");
+        //         System.out.flush();
 
-                String input = scanner.nextLine().trim();
-                if (input.equals("exit")) break;
+        //         String input = scanner.nextLine().trim();
+        //         if (input.equals("exit")) break;
 
-                handleCommand(input, builtins, System.in, System.out);
-            }
-            return;
-        }
+        //         handleCommand(input, builtins, System.in, System.out);
+        //     }
+        //     return;
+        // }
+        if (!interactive) {
+    Scanner scanner = new Scanner(System.in);
+    while (true) {
+        System.out.print("$ ");
+        System.out.flush();
+
+        if (!scanner.hasNextLine()) break; // EOF
+
+        String input = scanner.nextLine().trim();
+        if (input.equals("exit")) break;
+
+        handleCommand(input, builtins, System.in, System.out);
+    }
+    return;
+}
         
         while(true){
           
