@@ -13,6 +13,8 @@ import java.lang.ProcessBuilder.Redirect;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PipedOutputStream;
+import java.io.PipedInputStream;
 import java.util.concurrent.TimeUnit;
 
 
@@ -239,23 +241,18 @@ private static void handleCommand(String input, List<String> builtins, java.io.I
 //             return;
 //         }
 // [Inside handleCommand]
+// [Inside handleCommand]
 if (input.contains("|")) {
-   
+    // 1. Split by pipe to get raw command strings
     String[] parts = input.split("\\|");
-    List<String[]> pipelineArgs = new ArrayList<>();
-
+    List<String> rawCommands = new ArrayList<>();
     
     for (String part : parts) {
-        pipelineArgs.add(parseArguments(part.trim()));
+        rawCommands.add(part.trim());
     }
 
-    try {
-        runMultiPipeline(pipelineArgs, stdin, stdout);
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-    
-    
+    // 2. Run the pipeline using recursive handleCommand calls
+    runMultiPipeline(rawCommands, builtins, stdin, stdout);
     return;
 }
        
@@ -690,54 +687,63 @@ private static String getpath(String command){
 //             leftProc.destroyForcibly();
 //         }
 //     }
-private static void runMultiPipeline(List<String[]> pipelineArgs, InputStream stdin, OutputStream stdout) throws Exception {
-    List<ProcessBuilder> builders = new ArrayList<>();
+private static void runMultiPipeline(List<String> commands, List<String> builtins, InputStream stdin, OutputStream stdout) {
+    List<Thread> threads = new ArrayList<>();
+    InputStream nextInput = stdin;
 
-  
-    for (String[] args : pipelineArgs) {
-        if (args.length == 0) continue; 
-        
-        ProcessBuilder pb = new ProcessBuilder(args);
-        pb.directory(current.toFile());
-        pb.redirectError(ProcessBuilder.Redirect.INHERIT); 
-        builders.add(pb);
+    for (int i = 0; i < commands.size(); i++) {
+        String command = commands.get(i);
+        boolean isLast = (i == commands.size() - 1);
+
+        OutputStream nextOutput;
+        InputStream pipeIn = null;
+
+        try {
+            if (isLast) {
+                // The last command writes to the actual screen (stdout)
+                nextOutput = stdout;
+            } else {
+                // Create a pipe for the next command to read from
+                PipedOutputStream pos = new PipedOutputStream();
+                // Connect the input immediately (must be done before writing)
+                pipeIn = new PipedInputStream(pos);
+                nextOutput = pos;
+            }
+
+            // Capture variables for the thread
+            InputStream threadIn = nextInput;
+            OutputStream threadOut = nextOutput;
+
+            Thread t = new Thread(() -> {
+                try {
+                    // RECURSION: Let handleCommand decide if it's builtin or external!
+                    handleCommand(command, builtins, threadIn, threadOut);
+                } catch (Exception e) {
+                    // Ignore broken pipes (e.g., if 'head' closes input early, 'ls' might fail writing)
+                } finally {
+                    // IMPORTANT: Close the pipe output so the next command knows data is finished
+                    if (!isLast) {
+                        try { threadOut.close(); } catch (IOException ignored) {}
+                    }
+                }
+            });
+            
+            t.start();
+            threads.add(t);
+
+            // Prepare input for the next loop iteration
+            nextInput = pipeIn;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    if (builders.isEmpty()) return;
-
-    if (stdin == System.in) {
-        builders.get(0).redirectInput(ProcessBuilder.Redirect.INHERIT);
-    } else {
-      
-        builders.get(0).redirectInput(ProcessBuilder.Redirect.PIPE);
-    }
-
-    builders.get(builders.size() - 1).redirectOutput(ProcessBuilder.Redirect.PIPE);
-
-    
-    List<Process> processes = ProcessBuilder.startPipeline(builders);
-    
-  
-    Process firstProc = processes.get(0);
-    Process lastProc = processes.get(processes.size() - 1);
-
-   
-    if (stdin != System.in) {
-        new Thread(() -> {
-            try (OutputStream os = firstProc.getOutputStream()) {
-                stdin.transferTo(os);
-                os.close();
-            } catch (IOException ignored) {}
-        }).start();
-    }
-
-    try (InputStream is = lastProc.getInputStream()) {
-        is.transferTo(stdout);
-    } catch (IOException ignored) {}
-
-    
-    for (Process p : processes) {
-        p.waitFor();
+    // Wait for all commands to finish
+    for (Thread t : threads) {
+        try {
+            t.join();
+        } catch (InterruptedException ignored) {}
     }
 }
     }
