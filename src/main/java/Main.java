@@ -208,6 +208,7 @@ private static void handleCommand(String input, List<String> builtins, java.io.I
             new Thread(() -> {
                 try {
                     prevOut.transferTo(currIn);
+                    currIn.close();
                 } catch (IOException ignored) {}
             }).start();
         }
