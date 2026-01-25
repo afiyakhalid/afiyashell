@@ -469,12 +469,13 @@ else{
                 //     out.println(command + ": not found");
                 // }
                 if (stdin != System.in) {
-        try (java.io.OutputStream procIn = process.getOutputStream()) {
-            
-            stdin.transferTo(procIn); 
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
-        }
+       new Thread(() -> {
+            try (java.io.OutputStream procIn = process.getOutputStream()) {
+                stdin.transferTo(procIn);
+            } catch (java.io.IOException e) {
+                
+            }
+        }).start();
     }
    
 
