@@ -169,6 +169,66 @@ public class Main {
 private static void handleCommand(String input, List<String> builtins, java.io.InputStream stdin, java.io.OutputStream stdout) throws Exception {
     java.io.PrintStream out = new java.io.PrintStream(stdout, true, "UTF-8");
         if (input.isEmpty()) return;
+         if(input.contains("|")){
+    //         String[] commands = input.split("\\|");
+    // List<ProcessBuilder> builders = new ArrayList<>();
+
+    // for (String cmd : commands) {
+       
+    //     String[] args = cmd.trim().split("\\s+");
+        
+    //     ProcessBuilder pb = new ProcessBuilder(args);
+        
+       
+    //     pb.redirectError(Redirect.INHERIT);
+        
+    //     builders.add(pb);
+    // }
+
+
+    // builders.get(0).redirectInput(Redirect.INHERIT);
+    
+    
+    // builders.get(builders.size() - 1).redirectOutput(Redirect.INHERIT);
+    // try {
+    //     List<Process> processes=ProcessBuilder.startPipeline(builders);
+    //     Process lastProcess = processes.get(processes.size() - 1);
+    //     lastProcess.waitFor();
+        
+    // } catch (IOException | InterruptedException e) {
+    //         e.printStackTrace();
+    // }
+    // return;
+    String[] commands = input.split("\\|");
+    
+    // Start with an empty input stream
+    java.io.InputStream nextInput = new java.io.ByteArrayInputStream(new byte[0]);
+    
+    for (int i = 0; i < commands.length; i++) {
+        boolean isLast = (i == commands.length - 1);
+        
+        // If it's the last command, write to the screen (System.out).
+        // If not, write to a memory buffer.
+        java.io.OutputStream nextOutput;
+        java.io.ByteArrayOutputStream buffer = null;
+
+        if (isLast) {
+            nextOutput = System.out;
+        } else {
+            buffer = new java.io.ByteArrayOutputStream();
+            nextOutput = buffer;
+        }
+
+        handleCommand(commands[i].trim(), builtins, nextInput, nextOutput);
+
+        // If we used a buffer, turn it into input for the next loop
+        if (buffer != null) {
+            nextInput = new java.io.ByteArrayInputStream(buffer.toByteArray());
+        }
+    }
+    return;
+
+            }
        
      if (input.startsWith("echo "))
         {
@@ -240,66 +300,7 @@ else{
                 }
 
             
-        }else if(input.contains("|")){
-    //         String[] commands = input.split("\\|");
-    // List<ProcessBuilder> builders = new ArrayList<>();
-
-    // for (String cmd : commands) {
-       
-    //     String[] args = cmd.trim().split("\\s+");
-        
-    //     ProcessBuilder pb = new ProcessBuilder(args);
-        
-       
-    //     pb.redirectError(Redirect.INHERIT);
-        
-    //     builders.add(pb);
-    // }
-
-
-    // builders.get(0).redirectInput(Redirect.INHERIT);
-    
-    
-    // builders.get(builders.size() - 1).redirectOutput(Redirect.INHERIT);
-    // try {
-    //     List<Process> processes=ProcessBuilder.startPipeline(builders);
-    //     Process lastProcess = processes.get(processes.size() - 1);
-    //     lastProcess.waitFor();
-        
-    // } catch (IOException | InterruptedException e) {
-    //         e.printStackTrace();
-    // }
-    // return;
-    String[] commands = input.split("\\|");
-    
-    // Start with an empty input stream
-    java.io.InputStream nextInput = new java.io.ByteArrayInputStream(new byte[0]);
-    
-    for (int i = 0; i < commands.length; i++) {
-        boolean isLast = (i == commands.length - 1);
-        
-        // If it's the last command, write to the screen (System.out).
-        // If not, write to a memory buffer.
-        java.io.OutputStream nextOutput;
-        java.io.ByteArrayOutputStream buffer = null;
-
-        if (isLast) {
-            nextOutput = System.out;
-        } else {
-            buffer = new java.io.ByteArrayOutputStream();
-            nextOutput = buffer;
         }
-
-        handleCommand(commands[i].trim(), builtins, nextInput, nextOutput);
-
-        // If we used a buffer, turn it into input for the next loop
-        if (buffer != null) {
-            nextInput = new java.io.ByteArrayInputStream(buffer.toByteArray());
-        }
-    }
-    return;
-
-            }
         
                 else if (input.startsWith("type ")) {
                 String commandtocheck = input.substring(5);
