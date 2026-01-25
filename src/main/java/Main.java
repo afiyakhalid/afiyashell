@@ -159,6 +159,7 @@ public class Main {
         // } catch (Exception e) {
         //     return false;
         // }
+        //whatt
         return System.console() != null;
     }  
 
