@@ -170,64 +170,70 @@ private static void handleCommand(String input, List<String> builtins, java.io.I
     java.io.PrintStream out = new java.io.PrintStream(stdout, true, "UTF-8");
         if (input.isEmpty()) return;
          if(input.contains("|")){
-    //         String[] commands = input.split("\\|");
-    // List<ProcessBuilder> builders = new ArrayList<>();
-
-    // for (String cmd : commands) {
-       
-    //     String[] args = cmd.trim().split("\\s+");
-        
-    //     ProcessBuilder pb = new ProcessBuilder(args);
-        
-       
-    //     pb.redirectError(Redirect.INHERIT);
-        
-    //     builders.add(pb);
-    // }
-
-
-    // builders.get(0).redirectInput(Redirect.INHERIT);
     
+    // String[] commands = input.split("\\|");
     
-    // builders.get(builders.size() - 1).redirectOutput(Redirect.INHERIT);
-    // try {
-    //     List<Process> processes=ProcessBuilder.startPipeline(builders);
-    //     Process lastProcess = processes.get(processes.size() - 1);
-    //     lastProcess.waitFor();
+    // // Start with an empty input stream
+    // java.io.InputStream nextInput = new java.io.ByteArrayInputStream(new byte[0]);
+    
+    // for (int i = 0; i < commands.length; i++) {
+    //     boolean isLast = (i == commands.length - 1);
         
-    // } catch (IOException | InterruptedException e) {
-    //         e.printStackTrace();
+    //     // If it's the last command, write to the screen (System.out).
+    //     // If not, write to a memory buffer.
+    //     java.io.OutputStream nextOutput;
+    //     java.io.ByteArrayOutputStream buffer = null;
+
+    //     if (isLast) {
+    //         nextOutput = System.out;
+    //     } else {
+    //         buffer = new java.io.ByteArrayOutputStream();
+    //         nextOutput = buffer;
+    //     }
+
+    //     handleCommand(commands[i].trim(), builtins, nextInput, nextOutput);
+
+    //     // If we used a buffer, turn it into input for the next loop
+    //     if (buffer != null) {
+    //         nextInput = new java.io.ByteArrayInputStream(buffer.toByteArray());
+    //     }
     // }
     // return;
-    String[] commands = input.split("\\|");
+String[] commands = input.split("\\|");
     
-    // Start with an empty input stream
+    
     java.io.InputStream nextInput = new java.io.ByteArrayInputStream(new byte[0]);
-    
+
     for (int i = 0; i < commands.length; i++) {
+        String currentCmd = commands[i].trim();
         boolean isLast = (i == commands.length - 1);
-        
-        // If it's the last command, write to the screen (System.out).
-        // If not, write to a memory buffer.
-        java.io.OutputStream nextOutput;
-        java.io.ByteArrayOutputStream buffer = null;
 
         if (isLast) {
-            nextOutput = System.out;
+            
+            handleCommand(currentCmd, builtins, nextInput, stdout);
         } else {
-            buffer = new java.io.ByteArrayOutputStream();
-            nextOutput = buffer;
-        }
+            
+            java.io.PipedInputStream pipeIn = new java.io.PipedInputStream();
+            java.io.PipedOutputStream pipeOut = new java.io.PipedOutputStream(pipeIn);
+            
+         
+            java.io.InputStream cmdInput = nextInput;
+            
+            new Thread(() -> {
+                try {
+                    handleCommand(currentCmd, builtins, cmdInput, pipeOut);
+                    
+                    pipeOut.close(); 
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
 
-        handleCommand(commands[i].trim(), builtins, nextInput, nextOutput);
-
-        // If we used a buffer, turn it into input for the next loop
-        if (buffer != null) {
-            nextInput = new java.io.ByteArrayInputStream(buffer.toByteArray());
+            
+            nextInput = pipeIn;
         }
     }
     return;
-
             }
        
      if (input.startsWith("echo "))
@@ -411,7 +417,11 @@ else{
     if (commandpath != null) {
                     ProcessBuilder pb = new ProcessBuilder(commandargs);
                     pb.directory(current.toFile());
-
+                if (stdin == System.in) {
+        pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
+    } else {
+        pb.redirectInput(ProcessBuilder.Redirect.PIPE);
+    }
                     boolean manualOutput = false;
 
                     if (outputfile != null) {
@@ -440,24 +450,42 @@ else{
                     Process process = pb.start();
 
                   
-                    if (stdin.available() > 0) {
-                        try (java.io.OutputStream procIn = process.getOutputStream()) {
-                            stdin.transferTo(procIn);
-                        }
-                    } else {
+                //     if (stdin.available() > 0) {
+                //         try (java.io.OutputStream procIn = process.getOutputStream()) {
+                //             stdin.transferTo(procIn);
+                //         }
+                //     } else {
                        
-                        process.getOutputStream().close();
-                    }
+                //         process.getOutputStream().close();
+                //     }
 
-                    if (manualOutput) {
-                        process.getInputStream().transferTo(stdout);
-                    }
+                //     if (manualOutput) {
+                //         process.getInputStream().transferTo(stdout);
+                //     }
 
-                    process.waitFor();
-                } else {
+                //     process.waitFor();
+                // } else {
                     
-                    out.println(command + ": not found");
-                }
+                //     out.println(command + ": not found");
+                // }
+                if (stdin != System.in) {
+        try (java.io.OutputStream procIn = process.getOutputStream()) {
+            
+            stdin.transferTo(procIn); 
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+    }
+   
+
+    if (manualOutput) {
+        process.getInputStream().transferTo(stdout);
+    }
+
+    process.waitFor();
+} else {
+    out.println(command + ": not found");
+}
                 }
             }
         }
