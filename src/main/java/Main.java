@@ -11,8 +11,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 import java.lang.ProcessBuilder.Redirect;
 import java.io.IOException;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 
 
 
@@ -22,23 +20,151 @@ public class Main {
     public static void main(String[] args) throws Exception {
    
        
-       List<String> builtins = Arrays.asList("echo", "exit", "type", "pwd", "cd");
+      
+        List<String> builtins=Arrays.asList("echo","exit","type","pwd","cd");
+     boolean interactive = hasTty();
+        
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        while (true) {
-            System.out.print("$ ");
+        if (!interactive) {
+            Scanner scanner = new Scanner(System.in);
+            while (scanner.hasNextLine()) {
+                System.err.print("$ ");
+                System.out.print("$ ");
+                System.out.flush();
+
+                String input = scanner.nextLine().trim();
+                if (input.equals("exit")) break;
+
+                handleCommand(input, builtins);
+            }
+            return;
+        }
+        
+        while(true){
+            System.err.print("$ ");
+               System.out.print("$ ");
             System.out.flush();
+             setRawMode(true);
+             StringBuilder inputbuffer=new StringBuilder();
+               String lastTabPrefix=null;
+                boolean tabPending=false;
+             while(true){
+                int c=System.in.read();
+                
+                if(c==9){
+                    String line = inputbuffer.toString();
+                    int spaceIdx = line.indexOf(' ');
+    if (spaceIdx != -1) {
+     
+        continue;
+    }
+                    Set<String> allcommands=getAllCommands(builtins);
+                    String currentinput=inputbuffer.toString();
+                    List<String> candidates=new ArrayList<>();
+                    for (String cmd : allcommands) {
+         if (cmd.startsWith(currentinput)) {
+            candidates.add(cmd);
+        }
+    }
+    Collections.sort(candidates);
+    
+                  if(candidates.isEmpty()){
+                    System.out.print("\u0007");
+                    System.out.flush();
+                    tabPending=false;
+                    lastTabPrefix=null;
+}                   else if(candidates.size()==1){
+                        String matches=candidates.get(0);
+                        String suffix=matches.substring(inputbuffer.length()) + " ";
+                        System.out.print(suffix);
+                        inputbuffer.append(suffix);
+                    tabPending = false;
+                    lastTabPrefix = null;
 
-            String input = reader.readLine();
-            if (input == null) break;           // EOF
-            input = input.trim();
+                    }
+                    else {
+       
+        String commonPrefix = candidates.get(0);
+        for (int i = 1; i < candidates.size(); i++) {
+            String next = candidates.get(i);
+            while (!next.startsWith(commonPrefix)) {
+                commonPrefix = commonPrefix.substring(0, commonPrefix.length() - 1);
+            }
+        }
 
-            if (input.equals("exit")) break;
+      
+        if (commonPrefix.length() > currentinput.length()) {
+            String suffix = commonPrefix.substring(currentinput.length());
+            System.out.print(suffix);
+            inputbuffer.append(suffix);
+         
+            tabPending = false; 
+            lastTabPrefix = null;
+        }
+                    
+                else{
+                    if(tabPending && line.equals(lastTabPrefix)){
+                       System.out.print("\r\n");
+                        System.out.print(String.join("  ", candidates));
+                        System.out.print("\r\n");
+                        System.out.print("$ ");
+                        System.out.print(line);
+                        System.out.flush();
+                        tabPending=false;
+                        lastTabPrefix=null;
+                    }else{
+                        
+                        System.out.print("\u0007");
+                        System.out.flush();
+                        tabPending=true;
+                        lastTabPrefix=line;
+
+                    }
+                    }
+                    }
+                    continue;
+                    }else if (c==127) {
+                   if(inputbuffer.length()>0){
+                    inputbuffer.deleteCharAt(inputbuffer.length()-1);
+                    // System.out.print("\b \b");
+                   }
+                    tabPending = false;
+                      lastTabPrefix = null;
+                }else if(c==10||c==13){
+                    System.out.print("\r\n");
+                      System.out.flush();
+                    break;
+
+                }
+                else{
+                    char ch=(char)c;
+                      System.out.print(ch);
+                 System.out.flush();
+                    inputbuffer.append(ch);
+                     tabPending = false;
+                      lastTabPrefix = null;
+                }
+             }
+             setRawMode(false);
+                String input = inputbuffer.toString().trim();
+            if (input.equals("exit")) {
+                break; 
+            }
 
             handleCommand(input, builtins);
         }
     }
+      private static boolean hasTty() {
+        // try {
+        //     Path tty = Path.of("/dev/tty");
+        //     return Files.isReadable(tty) && Files.isWritable(tty);
+        // } catch (Exception e) {
+        //     return false;
+        // }
+        return System.console() != null;
         
+       
+    }  
 
    private static void handleCommand(String input, List<String> builtins) throws Exception {
         if (input.isEmpty()) return;
@@ -380,8 +506,3 @@ private static String getpath(String command){
     return null;
 }
 }
-
-
-    
-
-
