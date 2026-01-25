@@ -136,8 +136,8 @@ public class Main {
                 }
                 else{
                     char ch=(char)c;
-                      System.out.print(ch);
-                 System.out.flush();
+                //       System.out.print(ch);
+                //  System.out.flush();
                     inputbuffer.append(ch);
                      tabPending = false;
                       lastTabPrefix = null;
@@ -153,14 +153,13 @@ public class Main {
         }
     }
       private static boolean hasTty() {
-        // try {
-        //     Path tty = Path.of("/dev/tty");
-        //     return Files.isReadable(tty) && Files.isWritable(tty);
-        // } catch (Exception e) {
-        //     return false;
-        // }
-        //whatt
-        return System.console() != null;
+        try {
+            Path tty = Path.of("/dev/tty");
+            return Files.isReadable(tty) && Files.isWritable(tty);
+        } catch (Exception e) {
+            return false;
+        }
+       
     }  
 
    private static void handleCommand(String input, List<String> builtins) throws Exception {
