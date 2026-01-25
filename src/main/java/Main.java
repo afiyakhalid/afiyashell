@@ -42,14 +42,24 @@ public class Main {
         //     }
         //     return;
         // }
-        if (!interactive) {
+//         if (!interactive) {
+//     Scanner scanner = new Scanner(System.in);
+//     while (true) {
+//         System.out.print("$ ");
+//         System.out.flush();
+
+//         if (!scanner.hasNextLine()) break; // EOF
+
+//         String input = scanner.nextLine().trim();
+//         if (input.equals("exit")) break;
+
+//         handleCommand(input, builtins, System.in, System.out);
+//     }
+//     return;
+// }
+if (!interactive) {
     Scanner scanner = new Scanner(System.in);
-    while (true) {
-        System.out.print("$ ");
-        System.out.flush();
-
-        if (!scanner.hasNextLine()) break; // EOF
-
+    while (scanner.hasNextLine()) {
         String input = scanner.nextLine().trim();
         if (input.equals("exit")) break;
 
