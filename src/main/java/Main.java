@@ -172,19 +172,19 @@ private static void handleCommand(String input, List<String> builtins, java.io.I
     java.io.PrintStream out = new java.io.PrintStream(stdout, true, "UTF-8");
         if (input.isEmpty()) return;
    if (input.contains("|")) {
-            String[] parts = input.split("\\|", 2); // Split into just two parts
+            String[] parts = input.split("\\|", 2); 
             String sourceCmd = parts[0].trim();
             String destCmd = parts[1].trim();
 
             java.io.PipedOutputStream pipeOut = new java.io.PipedOutputStream();
             java.io.PipedInputStream pipeIn = new java.io.PipedInputStream(pipeOut);
 
-            // Run the left command in a separate thread
+           
             Thread sourceThread = new Thread(() -> {
                 try {
-                    // Recursively handle the left command (it writes to the pipe)
+               
                     handleCommand(sourceCmd, builtins, stdin, pipeOut);
-                    // IMPORTANT: Close the pipe so the next command knows input is done
+                    
                     pipeOut.close(); 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -192,11 +192,10 @@ private static void handleCommand(String input, List<String> builtins, java.io.I
             });
             sourceThread.start();
 
-            // Run the right command in this thread (it reads from the pipe)
-            // Since we call handleCommand recursively, it will check for builtins (type, echo) correctly!
+            
             handleCommand(destCmd, builtins, pipeIn, stdout);
 
-            // Wait for the left command to finish ensuring orderly execution
+    
             sourceThread.join();
             return;
         }
@@ -483,8 +482,13 @@ else{
     }
    
 
-    if (manualOutput) {
-        process.getInputStream().transferTo(stdout);
+   if (manualOutput) {
+        try {
+            process.getInputStream().transferTo(stdout);
+        } catch (IOException e) {
+            
+            process.destroy(); 
+        }
     }
 
     process.waitFor();
