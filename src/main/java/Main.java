@@ -42,31 +42,22 @@ public class Main {
         //     }
         //     return;
         // }
-//         if (!interactive) {
-//     Scanner scanner = new Scanner(System.in);
-//     while (true) {
-//         System.out.print("$ ");
-//         System.out.flush();
-
-//         if (!scanner.hasNextLine()) break; // EOF
-
-//         String input = scanner.nextLine().trim();
-//         if (input.equals("exit")) break;
-
-//         handleCommand(input, builtins, System.in, System.out);
-//     }
-//     return;
-// }
-if (!interactive) {
+        if (!interactive) {
     Scanner scanner = new Scanner(System.in);
-    while (scanner.hasNextLine()) {
+    while (true) {
+        System.out.print("$ ");
+        System.out.flush();
+
+        if (!scanner.hasNextLine()) break; // EOF
+
         String input = scanner.nextLine().trim();
         if (input.equals("exit")) break;
 
         handleCommand(input, builtins, System.in, System.out);
     }
     return;
-}
+        }
+
         
         while(true){
           
@@ -183,24 +174,24 @@ if (!interactive) {
         }
     }
       private static boolean hasTty() {
-        try {
-            Path tty = Path.of("/dev/tty");
-            return Files.isReadable(tty) && Files.isWritable(tty);
-        } catch (Exception e) {
-            return false;
-        }
-    //      String os = System.getProperty("os.name", "").toLowerCase();
-    // if (os.contains("win")) {
-    //     // Best we can do on Windows.
-    //     return System.console() != null;
-    // }
+        // try {
+        //     Path tty = Path.of("/dev/tty");
+        //     return Files.isReadable(tty) && Files.isWritable(tty);
+        // } catch (Exception e) {
+        //     return false;
+        // }
+         String os = System.getProperty("os.name", "").toLowerCase();
+    if (os.contains("win")) {
+        // Best we can do on Windows.
+        return System.console() != null;
+    }
 
-    // try {
-    //     Process p = new ProcessBuilder("sh", "-c", "test -t 0").start();
-    //     return p.waitFor() == 0;
-    // } catch (Exception e) {
-    //     return false;
-    // }
+    try {
+        Process p = new ProcessBuilder("sh", "-c", "test -t 0").start();
+        return p.waitFor() == 0;
+    } catch (Exception e) {
+        return false;
+    }
         
         
        
