@@ -28,7 +28,7 @@ public class Main {
         if (!interactive) {
             Scanner scanner = new Scanner(System.in);
             while (scanner.hasNextLine()) {
-                System.err.print("$ ");
+                
                 System.out.print("$ ");
                 System.out.flush();
 
@@ -41,7 +41,7 @@ public class Main {
         }
         
         while(true){
-            System.err.print("$ ");
+          
                System.out.print("$ ");
             System.out.flush();
              setRawMode(true);
@@ -155,13 +155,13 @@ public class Main {
         }
     }
       private static boolean hasTty() {
-        // try {
-        //     Path tty = Path.of("/dev/tty");
-        //     return Files.isReadable(tty) && Files.isWritable(tty);
-        // } catch (Exception e) {
-        //     return false;
-        // }
-        return System.console() != null;
+        try {
+            Path tty = Path.of("/dev/tty");
+            return Files.isReadable(tty) && Files.isWritable(tty);
+        } catch (Exception e) {
+            return false;
+        }
+        
         
        
     }  
