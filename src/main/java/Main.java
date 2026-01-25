@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.stream.Stream;
 import java.lang.ProcessBuilder.Redirect;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 
 
@@ -169,72 +171,94 @@ public class Main {
 private static void handleCommand(String input, List<String> builtins, java.io.InputStream stdin, java.io.OutputStream stdout) throws Exception {
     java.io.PrintStream out = new java.io.PrintStream(stdout, true, "UTF-8");
         if (input.isEmpty()) return;
-         if(input.contains("|")){
-    
-    // String[] commands = input.split("\\|");
-    
-    // // Start with an empty input stream
-    // java.io.InputStream nextInput = new java.io.ByteArrayInputStream(new byte[0]);
-    
-    // for (int i = 0; i < commands.length; i++) {
-    //     boolean isLast = (i == commands.length - 1);
-        
-    //     // If it's the last command, write to the screen (System.out).
-    //     // If not, write to a memory buffer.
-    //     java.io.OutputStream nextOutput;
-    //     java.io.ByteArrayOutputStream buffer = null;
+        if (input.contains("|")) {
+    String[] commands = input.split("\\|");
 
-    //     if (isLast) {
-    //         nextOutput = System.out;
-    //     } else {
-    //         buffer = new java.io.ByteArrayOutputStream();
-    //         nextOutput = buffer;
-    //     }
-
-    //     handleCommand(commands[i].trim(), builtins, nextInput, nextOutput);
-
-    //     // If we used a buffer, turn it into input for the next loop
-    //     if (buffer != null) {
-    //         nextInput = new java.io.ByteArrayInputStream(buffer.toByteArray());
-    //     }
-    // }
-    // return;
-String[] commands = input.split("\\|");
-    
-    
-    java.io.InputStream nextInput = new java.io.ByteArrayInputStream(new byte[0]);
+    List<Process> processes = new ArrayList<>();
+    Process previous = null;
 
     for (int i = 0; i < commands.length; i++) {
-        String currentCmd = commands[i].trim();
-        boolean isLast = (i == commands.length - 1);
+        String[] args = parseArguments(commands[i].trim());
+        ProcessBuilder pb = new ProcessBuilder(args);
+        pb.directory(current.toFile());
 
-        if (isLast) {
-            
-            handleCommand(currentCmd, builtins, nextInput, stdout);
+        // stdin
+        if (i == 0) {
+            pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
         } else {
-            
-            java.io.PipedInputStream pipeIn = new java.io.PipedInputStream();
-            java.io.PipedOutputStream pipeOut = new java.io.PipedOutputStream(pipeIn);
-            
-         
-            java.io.InputStream cmdInput = nextInput;
-            
+            pb.redirectInput(ProcessBuilder.Redirect.PIPE);
+        }
+
+        // stdout
+        if (i == commands.length - 1) {
+            pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        } else {
+            pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
+        }
+
+        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+
+        Process proc = pb.start();
+
+        if (previous != null) {
+            // connect previous stdout → current stdin
+            InputStream prevOut = previous.getInputStream();
+            OutputStream currIn = proc.getOutputStream();
+
             new Thread(() -> {
                 try {
-                    handleCommand(currentCmd, builtins, cmdInput, pipeOut);
-                    
-                    pipeOut.close(); 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                    prevOut.transferTo(currIn);
+                } catch (IOException ignored) {}
             }).start();
+        }
+
+        processes.add(proc);
+        previous = proc;
+    }
+
+    // IMPORTANT: wait ONLY for last process
+    processes.get(processes.size() - 1).waitFor();
+    return;
+}
+//          if(input.contains("|")){
+    
+  
+// String[] commands = input.split("\\|");
+    
+    
+//     java.io.InputStream nextInput = new java.io.ByteArrayInputStream(new byte[0]);
+
+//     for (int i = 0; i < commands.length; i++) {
+//         String currentCmd = commands[i].trim();
+//         boolean isLast = (i == commands.length - 1);
+
+//         if (isLast) {
+            
+//             handleCommand(currentCmd, builtins, nextInput, stdout);
+//         } else {
+            
+//             java.io.PipedInputStream pipeIn = new java.io.PipedInputStream();
+//             java.io.PipedOutputStream pipeOut = new java.io.PipedOutputStream(pipeIn);
+            
+         
+//             java.io.InputStream cmdInput = nextInput;
+            
+//             new Thread(() -> {
+//                 try {
+//                     handleCommand(currentCmd, builtins, cmdInput, pipeOut);
+                    
+//                     pipeOut.close(); 
+//                 } catch (Exception e) {
+//                     e.printStackTrace();
+//                 }
+//             }).start();
 
             
-            nextInput = pipeIn;
-        }
-    }
-    return;
-            }
+//             nextInput = pipeIn;
+//         }
+//     }
+//     return;
+//             }
        
      if (input.startsWith("echo "))
         {
