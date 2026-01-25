@@ -158,12 +158,24 @@ public class Main {
         }
     }
       private static boolean hasTty() {
-        try {
-            Path tty = Path.of("/dev/tty");
-            return Files.isReadable(tty) && Files.isWritable(tty);
-        } catch (Exception e) {
-            return false;
-        }
+        // try {
+        //     Path tty = Path.of("/dev/tty");
+        //     return Files.isReadable(tty) && Files.isWritable(tty);
+        // } catch (Exception e) {
+        //     return false;
+        // }
+         String os = System.getProperty("os.name", "").toLowerCase();
+    if (os.contains("win")) {
+        // Best we can do on Windows.
+        return System.console() != null;
+    }
+
+    try {
+        Process p = new ProcessBuilder("sh", "-c", "test -t 0").start();
+        return p.waitFor() == 0;
+    } catch (Exception e) {
+        return false;
+    }
         
         
        
