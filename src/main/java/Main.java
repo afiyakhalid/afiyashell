@@ -171,37 +171,29 @@ public class Main {
 private static void handleCommand(String input, List<String> builtins, java.io.InputStream stdin, java.io.OutputStream stdout) throws Exception {
     java.io.PrintStream out = new java.io.PrintStream(stdout, true, "UTF-8");
         if (input.isEmpty()) return;
-        if (input.contains("|")) {
+       if (input.contains("|")) {
     String[] commands = input.split("\\|");
 
-    List<Process> processes = new ArrayList<>();
     Process previous = null;
+    List<Process> processes = new ArrayList<>();
 
     for (int i = 0; i < commands.length; i++) {
         String[] args = parseArguments(commands[i].trim());
         ProcessBuilder pb = new ProcessBuilder(args);
         pb.directory(current.toFile());
 
-        // stdin
-        if (i == 0) {
-            pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
-        } else {
-            pb.redirectInput(ProcessBuilder.Redirect.PIPE);
-        }
+        pb.redirectInput(ProcessBuilder.Redirect.PIPE);
+        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
 
-        // stdout
         if (i == commands.length - 1) {
             pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
         } else {
             pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
         }
 
-        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
-
         Process proc = pb.start();
 
         if (previous != null) {
-            // connect previous stdout → current stdin
             InputStream prevOut = previous.getInputStream();
             OutputStream currIn = proc.getOutputStream();
 
@@ -217,7 +209,6 @@ private static void handleCommand(String input, List<String> builtins, java.io.I
         previous = proc;
     }
 
-    // IMPORTANT: wait ONLY for last process
     processes.get(processes.size() - 1).waitFor();
     return;
 }
