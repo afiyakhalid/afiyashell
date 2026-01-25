@@ -175,27 +175,31 @@ public class Main {
             handleCommand(input, builtins, System.in, System.out);
         }
     }
-    //   private static boolean hasTty() {
-    //     try {
-    //         Path tty = Path.of("/dev/tty");
-    //         return Files.isReadable(tty) && Files.isWritable(tty);
-    //     } catch (Exception e) {
-    //         return false;
-    //     }
-       
-    
-        
-       
-    // }  
-private static boolean hasTty() {
-    try {
-       
-        Process process = new ProcessBuilder("test", "-t", "0").start();
-        return process.waitFor() == 0;
+      private static boolean hasTty() {
+        // try {
+        //     Path tty = Path.of("/dev/tty");
+        //     return Files.isReadable(tty) && Files.isWritable(tty);
+        // } catch (Exception e) {
+        //     return false;
+        // }
+        try {
+        if (System.console() == null) return false;
+
+        String in = Path.of("/dev/stdin").toRealPath().toString();
+        String out = Path.of("/dev/stdout").toRealPath().toString();
+
+        boolean inIsTty = in.startsWith("/dev/pts/") || in.startsWith("/dev/tty");
+        boolean outIsTty = out.startsWith("/dev/pts/") || out.startsWith("/dev/tty");
+
+        return inIsTty && outIsTty;
     } catch (Exception e) {
         return false;
     }
-}
+    
+        
+       
+    }  
+
 private static void handleCommand(String input, List<String> builtins, java.io.InputStream stdin, java.io.OutputStream stdout) throws Exception {
     java.io.PrintStream out = new java.io.PrintStream(stdout, true, "UTF-8");
         if (input.isEmpty()) return;
