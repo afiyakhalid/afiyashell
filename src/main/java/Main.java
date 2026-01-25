@@ -35,7 +35,7 @@ public class Main {
                 String input = scanner.nextLine().trim();
                 if (input.equals("exit")) break;
 
-                handleCommand(input, builtins);
+                handleCommand(input, builtins, System.in, System.out);
             }
             return;
         }
@@ -151,7 +151,7 @@ public class Main {
                 break; 
             }
 
-            handleCommand(input, builtins);
+            handleCommand(input, builtins, System.in, System.out);
         }
     }
       private static boolean hasTty() {
@@ -166,7 +166,8 @@ public class Main {
        
     }  
 
-   private static void handleCommand(String input, List<String> builtins) throws Exception {
+private static void handleCommand(String input, List<String> builtins, java.io.InputStream stdin, java.io.OutputStream stdout) throws Exception {
+    java.io.PrintStream out = new java.io.PrintStream(stdout, true, "UTF-8");
         if (input.isEmpty()) return;
        
      if (input.startsWith("echo "))
@@ -222,12 +223,12 @@ else{
         }
         else{
             for(int j=0;j<argstoadd.size();j++){
-                System.out.print(argstoadd.get(j));
+                out.print(argstoadd.get(j));
                 if(j<argstoadd.size()-1){
-                    System.out.print(" ");
+                    out.print(" ");
                 }
             }
-            System.out.println();
+            out.println();
         }
         if (errorFile != null) {
                     try {
@@ -240,33 +241,61 @@ else{
 
             
         }else if(input.contains("|")){
-            String[] commands = input.split("\\|");
-    List<ProcessBuilder> builders = new ArrayList<>();
+    //         String[] commands = input.split("\\|");
+    // List<ProcessBuilder> builders = new ArrayList<>();
 
-    for (String cmd : commands) {
+    // for (String cmd : commands) {
        
-        String[] args = cmd.trim().split("\\s+");
+    //     String[] args = cmd.trim().split("\\s+");
         
-        ProcessBuilder pb = new ProcessBuilder(args);
+    //     ProcessBuilder pb = new ProcessBuilder(args);
         
        
-        pb.redirectError(Redirect.INHERIT);
+    //     pb.redirectError(Redirect.INHERIT);
         
-        builders.add(pb);
-    }
+    //     builders.add(pb);
+    // }
 
 
-    builders.get(0).redirectInput(Redirect.INHERIT);
+    // builders.get(0).redirectInput(Redirect.INHERIT);
     
     
-    builders.get(builders.size() - 1).redirectOutput(Redirect.INHERIT);
-    try {
-        List<Process> processes=ProcessBuilder.startPipeline(builders);
-        Process lastProcess = processes.get(processes.size() - 1);
-        lastProcess.waitFor();
+    // builders.get(builders.size() - 1).redirectOutput(Redirect.INHERIT);
+    // try {
+    //     List<Process> processes=ProcessBuilder.startPipeline(builders);
+    //     Process lastProcess = processes.get(processes.size() - 1);
+    //     lastProcess.waitFor();
         
-    } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+    // } catch (IOException | InterruptedException e) {
+    //         e.printStackTrace();
+    // }
+    // return;
+    String[] commands = input.split("\\|");
+    
+    // Start with an empty input stream
+    java.io.InputStream nextInput = new java.io.ByteArrayInputStream(new byte[0]);
+    
+    for (int i = 0; i < commands.length; i++) {
+        boolean isLast = (i == commands.length - 1);
+        
+        // If it's the last command, write to the screen (System.out).
+        // If not, write to a memory buffer.
+        java.io.OutputStream nextOutput;
+        java.io.ByteArrayOutputStream buffer = null;
+
+        if (isLast) {
+            nextOutput = System.out;
+        } else {
+            buffer = new java.io.ByteArrayOutputStream();
+            nextOutput = buffer;
+        }
+
+        handleCommand(commands[i].trim(), builtins, nextInput, nextOutput);
+
+        // If we used a buffer, turn it into input for the next loop
+        if (buffer != null) {
+            nextInput = new java.io.ByteArrayInputStream(buffer.toByteArray());
+        }
     }
     return;
 
@@ -276,20 +305,20 @@ else{
                 String commandtocheck = input.substring(5);
         if(builtins.contains(commandtocheck))
         {
-            System.out.println(commandtocheck +" is a shell builtin");
+            out.println(commandtocheck +" is a shell builtin");
            
 
         }else{
           String path=getpath(commandtocheck);
           if(path!=null){
-            System.out.println(commandtocheck + " is " + path);
+            out.println(commandtocheck + " is " + path);
           }else{
-        System.out.println(commandtocheck + ": not found");
+        out.println(commandtocheck + ": not found");
         }
         } 
        }else if(input.equals("pwd")) {
       
-        System.out.println(current.toString());
+        out.println(current.toString());
         }else if(input.startsWith("cd")) {
             String pathstring =input.substring(3);
             if(pathstring.equals("~")){
@@ -301,7 +330,7 @@ else{
             if(Files.isDirectory(newpath)){
                 current=newpath;
             }else{
-                System.out.println("cd: " + pathstring + ": No such file or directory");
+                out.println("cd: " + pathstring + ": No such file or directory");
             }
         }else{
               
@@ -346,38 +375,88 @@ else{
                 if (commandargs.size() > 0) {
                     String command = commandargs.get(0);
                     String commandpath = getpath(command);
-                    if (commandpath != null) {
-                        ProcessBuilder pb = new ProcessBuilder(commandargs);
-                        pb.directory(current.toFile());
+    //                 if (commandpath != null) {
+    //                     ProcessBuilder pb = new ProcessBuilder(commandargs);
+    //                     pb.directory(current.toFile());
 
-                        if (outputfile != null) {
-                            if(append){
-                            pb.redirectOutput(ProcessBuilder.Redirect.appendTo(outputfile));
-                             } else{
-                           pb.redirectOutput(outputfile);
-                             }
-                        } else {
-                            pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-                        }
+    //                     if (outputfile != null) {
+    //                         if(append){
+    //                         pb.redirectOutput(ProcessBuilder.Redirect.appendTo(outputfile));
+    //                          } else{
+    //                        pb.redirectOutput(outputfile);
+    //                          }
+    //                     } else {
+    //                         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+    //                     }
 
                         
-                        if (errorfile != null) {
-        if (append) {
+    //                     if (errorfile != null) {
+    //     if (append) {
       
-            pb.redirectError(ProcessBuilder.Redirect.appendTo(errorfile));
-        } else {
+    //         pb.redirectError(ProcessBuilder.Redirect.appendTo(errorfile));
+    //     } else {
             
-            pb.redirectError(errorfile);
-        }
-    } else {
-        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
-    }
+    //         pb.redirectError(errorfile);
+    //     }
+    // } else {
+    //     pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+    // }
 
-                        Process process = pb.start();
-                        process.waitFor();
+    //                     Process process = pb.start();
+    //                     process.waitFor();
+    //                 } else {
+    //                     System.out.println(command + ": not found");
+    //                 }
+    if (commandpath != null) {
+                    ProcessBuilder pb = new ProcessBuilder(commandargs);
+                    pb.directory(current.toFile());
+
+                    boolean manualOutput = false;
+
+                    if (outputfile != null) {
+                        if (append) {
+                            pb.redirectOutput(ProcessBuilder.Redirect.appendTo(outputfile));
+                        } else {
+                            pb.redirectOutput(outputfile);
+                        }
                     } else {
-                        System.out.println(command + ": not found");
+          
+                        manualOutput = true;
                     }
+
+                  
+                    if (errorfile != null) {
+                        if (append) {
+                            pb.redirectError(ProcessBuilder.Redirect.appendTo(errorfile));
+                        } else {
+                            pb.redirectError(errorfile);
+                        }
+                    } else {
+                        
+                        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+                    }
+
+                    Process process = pb.start();
+
+                  
+                    if (stdin.available() > 0) {
+                        try (java.io.OutputStream procIn = process.getOutputStream()) {
+                            stdin.transferTo(procIn);
+                        }
+                    } else {
+                       
+                        process.getOutputStream().close();
+                    }
+
+                    if (manualOutput) {
+                        process.getInputStream().transferTo(stdout);
+                    }
+
+                    process.waitFor();
+                } else {
+                    
+                    out.println(command + ": not found");
+                }
                 }
             }
         }
