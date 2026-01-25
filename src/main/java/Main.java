@@ -175,19 +175,27 @@ public class Main {
             handleCommand(input, builtins, System.in, System.out);
         }
     }
-      private static boolean hasTty() {
-        try {
-            Path tty = Path.of("/dev/tty");
-            return Files.isReadable(tty) && Files.isWritable(tty);
-        } catch (Exception e) {
-            return false;
-        }
+    //   private static boolean hasTty() {
+    //     try {
+    //         Path tty = Path.of("/dev/tty");
+    //         return Files.isReadable(tty) && Files.isWritable(tty);
+    //     } catch (Exception e) {
+    //         return false;
+    //     }
        
     
         
        
-    }  
-
+    // }  
+private static boolean hasTty() {
+    try {
+       
+        Process process = new ProcessBuilder("test", "-t", "0").start();
+        return process.waitFor() == 0;
+    } catch (Exception e) {
+        return false;
+    }
+}
 private static void handleCommand(String input, List<String> builtins, java.io.InputStream stdin, java.io.OutputStream stdout) throws Exception {
     java.io.PrintStream out = new java.io.PrintStream(stdout, true, "UTF-8");
         if (input.isEmpty()) return;
@@ -236,7 +244,6 @@ if (input.contains("|")) {
         List<String> rawCommands = new ArrayList<>();
         for (String part : parts) rawCommands.add(part.trim());
 
-        // Special-case: 2-command pipeline where both commands are external
         if (rawCommands.size() == 2) {
             String leftCmd = rawCommands.get(0);
             String rightCmd = rawCommands.get(1);
