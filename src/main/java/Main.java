@@ -81,8 +81,8 @@ public class Main {
                         if(historyIndex>0){
                             historyIndex--;
                             String prevCmd = history.get(historyIndex);
-                            System.out.print("033[2K\r$ " + prevCmd);
-                         
+                            // System.out.print("033[2K\r$ " + prevCmd);
+                            System.out.print("\r\u001b[2K$ " + prevCmd);
                             System.out.flush();
                             inputbuffer.setLength(0);
                             inputbuffer.append(prevCmd);
@@ -93,8 +93,8 @@ public class Main {
                                 historyIndex++;
                                 String nextCmd = (historyIndex == history.size()) ? "" : history.get(historyIndex);
                                 
-                                System.out.print("\033[2K\r$ " + nextCmd);
-                                
+                                // System.out.print("\033[2K\r$ " + nextCmd);
+                                  System.out.print("\r\u001b[2K$ " + nextCmd);
                                 System.out.flush();
                                 
                                 inputbuffer.setLength(0);
