@@ -182,19 +182,51 @@ public class Main {
         // } catch (Exception e) {
         //     return false;
         // }
+    //     try {
+    //     if (System.console() == null) return false;
+
+    //     String in = Path.of("/dev/stdin").toRealPath().toString();
+    //     String out = Path.of("/dev/stdout").toRealPath().toString();
+
+    //     boolean inIsTty = in.startsWith("/dev/pts/") || in.startsWith("/dev/tty");
+    //     boolean outIsTty = out.startsWith("/dev/pts/") || out.startsWith("/dev/tty");
+
+    //     return inIsTty && outIsTty;
+    // } catch (Exception e) {
+    //     return false;
+    // }
+    try {
+        // Fast, cross-platform check: if the JVM provides a Console, assume a tty.
+        if (System.console() != null) return true;
+
+        String os = System.getProperty("os.name", "").toLowerCase();
+        // On Windows the Console check is the best we can do here.
+        if (os.contains("win")) return false;
+
+        // Unix-like platforms:
+        // 1) Prefer /dev/tty if present and readable/writable (strong indication of a controlling tty)
         try {
-        if (System.console() == null) return false;
+            Path devTty = Path.of("/dev/tty");
+            if (Files.exists(devTty) && Files.isReadable(devTty) && Files.isWritable(devTty)) {
+                return true;
+            }
+        } catch (Exception ignored) {}
 
-        String in = Path.of("/dev/stdin").toRealPath().toString();
-        String out = Path.of("/dev/stdout").toRealPath().toString();
+        // 2) Fallback: resolve /dev/stdin and /dev/stdout to their real paths and check if they are pts/tty
+        try {
+            String in = Path.of("/dev/stdin").toRealPath().toString();
+            String out = Path.of("/dev/stdout").toRealPath().toString();
+            boolean inIsTty = in.startsWith("/dev/pts/") || in.startsWith("/dev/tty");
+            boolean outIsTty = out.startsWith("/dev/pts/") || out.startsWith("/dev/tty");
+            return inIsTty && outIsTty;
+        } catch (Exception ignored) {
+            // if realpath fails (not present or permission issues), fall through to false
+        }
 
-        boolean inIsTty = in.startsWith("/dev/pts/") || in.startsWith("/dev/tty");
-        boolean outIsTty = out.startsWith("/dev/pts/") || out.startsWith("/dev/tty");
-
-        return inIsTty && outIsTty;
-    } catch (Exception e) {
-        return false;
+    } catch (Throwable t) {
+        // Be conservative on any unexpected error: not a tty
     }
+    return false;
     
    
     
