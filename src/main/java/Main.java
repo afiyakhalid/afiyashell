@@ -363,7 +363,7 @@ else{
     }
     
 }
-       
+       //what iswromg here
        else if(input.equals("pwd")) {
       
         out.println(current.toString());
