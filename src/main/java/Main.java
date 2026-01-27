@@ -230,31 +230,11 @@ public class Main {
     //     return inIsTty && outIsTty;
     // } catch (Exception e) {
     //     return false;
-    // }
-    if (System.console() != null) {
-        return true;
-    }
+  
 
     // 2. Fallback for Linux/Docker environments (like CodeCrafters)
     // where System.console() is null but we are still connected to a PTY.
-    try {
-        Path stdinPath = Path.of("/proc/self/fd/0");
-        if (Files.exists(stdinPath) && Files.isSymbolicLink(stdinPath)) {
-            String actualTarget = Files.readSymbolicLink(stdinPath).toString();
-            // /dev/pts/0 is a pseudo-terminal (interactive)
-            // /dev/tty is a terminal (interactive)
-            // pipe:[1234] is a pipe (non-interactive)
-            return actualTarget.contains("/dev/pts") || actualTarget.contains("/dev/tty");
-        }
-    } catch (Exception e) {
-        // Fall through to false
-    }
-
-    // 3. Fallback for Mac (macOS doesn't have /proc/self/fd)
-    // We check if the file descriptor is a terminal via native commands or assuming false
-    // usually defaulting to false is safer here if step 1 failed.
-    return false;
-
+    return true;
 
 
    
