@@ -195,7 +195,8 @@ public class Main {
     // } catch (Exception e) {
     //     return false;
     // }
-    return false;
+    return System.console() != null;
+   
     
         
        
