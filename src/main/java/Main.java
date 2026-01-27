@@ -195,43 +195,36 @@ public class Main {
     // } catch (Exception e) {
     //     return false;
     // }
-    try {
-        // Fast, cross-platform check: if the JVM provides a Console, assume a tty.
+   try {
+        // JVM Console is the easiest reliable check
         if (System.console() != null) return true;
 
         String os = System.getProperty("os.name", "").toLowerCase();
-        // On Windows the Console check is the best we can do here.
+        // On Windows we can't reliably detect a POSIX tty without extra libs — assume false
         if (os.contains("win")) return false;
 
-        // Unix-like platforms:
-        // 1) Prefer /dev/tty if present and readable/writable (strong indication of a controlling tty)
+        // On Linux/Unix try /proc/self/fd symlinks (most reliable in CI)
+        try {
+            Path fd0 = Paths.get("/proc/self/fd/0");
+            Path fd1 = Paths.get("/proc/self/fd/1");
+            if (Files.exists(fd0) && Files.exists(fd1) && Files.isSymbolicLink(fd0) && Files.isSymbolicLink(fd1)) {
+                String target0 = Files.readSymbolicLink(fd0).toString();
+                String target1 = Files.readSymbolicLink(fd1).toString();
+                boolean inIsTty = target0.startsWith("/dev/pts/") || target0.startsWith("/dev/tty");
+                boolean outIsTty = target1.startsWith("/dev/pts/") || target1.startsWith("/dev/tty");
+                return inIsTty && outIsTty;
+            }
+        } catch (Exception ignored) {}
+
+        // Fallback: check /dev/tty accessibility
         try {
             Path devTty = Path.of("/dev/tty");
             if (Files.exists(devTty) && Files.isReadable(devTty) && Files.isWritable(devTty)) {
                 return true;
             }
         } catch (Exception ignored) {}
-
-        // 2) Fallback: resolve /dev/stdin and /dev/stdout to their real paths and check if they are pts/tty
-        try {
-            String in = Path.of("/dev/stdin").toRealPath().toString();
-            String out = Path.of("/dev/stdout").toRealPath().toString();
-            boolean inIsTty = in.startsWith("/dev/pts/") || in.startsWith("/dev/tty");
-            boolean outIsTty = out.startsWith("/dev/pts/") || out.startsWith("/dev/tty");
-            return inIsTty && outIsTty;
-        } catch (Exception ignored) {
-            // if realpath fails (not present or permission issues), fall through to false
-        }
-
-    } catch (Throwable t) {
-        // Be conservative on any unexpected error: not a tty
-    }
+    } catch (Throwable ignored) {}
     return false;
-    
-   
-    
-        
-       
     }  
 
 private static void handleCommand(String input, List<String> builtins, java.io.InputStream stdin, java.io.OutputStream stdout) throws Exception {
