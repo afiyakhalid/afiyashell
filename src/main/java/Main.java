@@ -229,6 +229,8 @@ public class Main {
 
         return inIsTty && outIsTty;
     } catch (Exception e) {
+        
+    }
         return false;
   
 
