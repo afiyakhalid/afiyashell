@@ -182,19 +182,42 @@ public class Main {
         // } catch (Exception e) {
         //     return false;
         // }
-        try {
-        if (System.console() == null) return false;
+    //     try {
+    //     if (System.console() == null) return false;
 
-        String in = Path.of("/dev/stdin").toRealPath().toString();
-        String out = Path.of("/dev/stdout").toRealPath().toString();
+    //     String in = Path.of("/dev/stdin").toRealPath().toString();
+    //     String out = Path.of("/dev/stdout").toRealPath().toString();
 
-        boolean inIsTty = in.startsWith("/dev/pts/") || in.startsWith("/dev/tty");
-        boolean outIsTty = out.startsWith("/dev/pts/") || out.startsWith("/dev/tty");
+    //     boolean inIsTty = in.startsWith("/dev/pts/") || in.startsWith("/dev/tty");
+    //     boolean outIsTty = out.startsWith("/dev/pts/") || out.startsWith("/dev/tty");
 
-        return inIsTty && outIsTty;
-    } catch (Exception e) {
+    //     return inIsTty && outIsTty;
+    // } catch (Exception e) {
+    //     return false;
+    //}
+    try {
+        // 1. If we have a JVM console, we are definitely interactive.
+        if (System.console() != null) return true;
+
+        // 2. STDIN Check for Linux/Docker:
+        // We check what File Descriptor 0 (STDIN) is actually pointing to.
+        // If it points to "pipe:[...]", we are PIPED (return false).
+        // If it points to "/dev/pts/..." or "/dev/tty", we are INTERACTIVE (return true).
+        Path stdinPath = Path.of("/proc/self/fd/0");
+
+        if (Files.exists(stdinPath) && Files.isSymbolicLink(stdinPath)) {
+            String actualTarget = Files.readSymbolicLink(stdinPath).toString();
+            
+            // This is the money line:
+            return actualTarget.contains("/dev/pts") || actualTarget.contains("/dev/tty");
+        }
+    } catch (Throwable t) {
+        // If anything goes wrong checking, default to FALSE (safe mode)
+        // so we don't break the automated tests.
         return false;
     }
+
+    return false;
    
     }  
 
