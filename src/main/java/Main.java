@@ -1,3 +1,6 @@
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -8,25 +11,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.stream.Stream;
-import java.lang.ProcessBuilder.Redirect;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PipedOutputStream;
-import java.io.PipedInputStream;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 
 
 
 public class Main {
     private static Path current=Paths.get(System.getProperty("user.dir"));
+     private static List<String> history=new ArrayList<>();
     public static void main(String[] args) throws Exception {
    
        
       
-        List<String> builtins=Arrays.asList("echo","exit","type","pwd","cd");
+        List<String> builtins=Arrays.asList("echo","exit","type","pwd","cd","history");
      boolean interactive = hasTty();
         
 
@@ -54,6 +52,7 @@ public class Main {
 
         String input = scanner.nextLine().trim();
         if (input.equals("exit")) break;
+        history.add(input);
 
         handleCommand(input, builtins, System.in, System.out);
     }
@@ -171,6 +170,7 @@ public class Main {
             if (input.equals("exit")) {
                 break; 
             }
+            history.add(input);
 
             handleCommand(input, builtins, System.in, System.out);
         }
@@ -284,6 +284,7 @@ if (input.contains("|")) {
     append=false;
     i++;
 }            }
+
 else if(parts[i].equals(">>")||parts[i].equals("1>>")){
                 if(i+1<parts.length)
 {
@@ -356,7 +357,14 @@ else{
         out.println(commandtocheck + ": not found");
         }
         } 
-       }else if(input.equals("pwd")) {
+       }else if (input.startsWith("history")) {
+    for(int i=0;i<history.size();i++){
+        out.println((i+1) + " " + history.get(i));
+    }
+    
+}
+       
+       else if(input.equals("pwd")) {
       
         out.println(current.toString());
         }else if(input.startsWith("cd")) {
