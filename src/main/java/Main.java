@@ -231,63 +231,27 @@ public class Main {
     // } catch (Exception e) {
     //     return false;
     // }
-    // try {
+    try {
        
-    //     if (System.console() != null) return true;
+        if (System.console() != null) return true;
 
         
-    //     Path stdinPath = Path.of("/proc/self/fd/0");
+        Path stdinPath = Path.of("/proc/self/fd/0");
 
-    //     if (Files.exists(stdinPath) && Files.isSymbolicLink(stdinPath)) {
-    //         String actualTarget = Files.readSymbolicLink(stdinPath).toString();
+        if (Files.exists(stdinPath) && Files.isSymbolicLink(stdinPath)) {
+            String actualTarget = Files.readSymbolicLink(stdinPath).toString();
             
-    //         // This is the money line:
-    //         return actualTarget.contains("/dev/pts") || actualTarget.contains("/dev/tty");
-    //     }
-    // } catch (Throwable t) {
+            // This is the money line:
+            return actualTarget.contains("/dev/pts") || actualTarget.contains("/dev/tty");
+        }
+    } catch (Throwable t) {
        
-    //     return false;
-    // }
+        return false;
+    }
 
    
-    try {
-        if (System.console() != null) return true;
-    } catch (Throwable ignored) {}
+    
 
-    try {
-        String ci = System.getenv("CI");
-        if (ci != null && !ci.isEmpty()) return false;
-    } catch (Throwable ignored) {}
-
-  
-    try {
-        Path fd0 = Path.of("/proc/self/fd/0");
-        if (Files.exists(fd0) && Files.isSymbolicLink(fd0)) {
-            String target = Files.readSymbolicLink(fd0).toString();
-            if (target.contains("/dev/pts") || target.contains("/dev/tty")) return true;
-        }
-    } catch (Throwable ignored) {}
-
-    try {
-        Path stdin = Path.of("/dev/stdin");
-        Path stdout = Path.of("/dev/stdout");
-        if (Files.exists(stdin) && Files.exists(stdout)) {
-            String in = stdin.toRealPath().toString();
-            String out = stdout.toRealPath().toString();
-            if ((in.startsWith("/dev/pts/") || in.startsWith("/dev/tty"))
-                && (out.startsWith("/dev/pts/") || out.startsWith("/dev/tty"))) {
-                return true;
-            }
-        }
-    } catch (Throwable ignored) {}
-
-    try {
-        Path devTty = Path.of("/dev/tty");
-        if (Files.exists(devTty) && Files.isReadable(devTty) && Files.isWritable(devTty)) return true;
-    } catch (Throwable ignored) {}
-
-    return false;
-   
     }  
 
 private static void handleCommand(String input, List<String> builtins, java.io.InputStream stdin, java.io.OutputStream stdout) throws Exception {
