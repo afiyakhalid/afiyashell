@@ -176,12 +176,12 @@ public class Main {
         }
     }
       private static boolean hasTty() {
-        // try {
-        //     Path tty = Path.of("/dev/tty");
-        //     return Files.isReadable(tty) && Files.isWritable(tty);
-        // } catch (Exception e) {
-        //     return false;
-        // }
+        try {
+            Path tty = Path.of("/dev/tty");
+            return Files.isReadable(tty) && Files.isWritable(tty);
+        } catch (Exception e) {
+            return false;
+        }
     //     try {
     //     if (System.console() == null) return false;
 
@@ -195,25 +195,25 @@ public class Main {
     // } catch (Exception e) {
     //     return false;
     //}
-    try {
+    // try {
        
-        if (System.console() != null) return true;
+    //     if (System.console() != null) return true;
 
         
-        Path stdinPath = Path.of("/proc/self/fd/0");
+    //     Path stdinPath = Path.of("/proc/self/fd/0");
 
-        if (Files.exists(stdinPath) && Files.isSymbolicLink(stdinPath)) {
-            String actualTarget = Files.readSymbolicLink(stdinPath).toString();
+    //     if (Files.exists(stdinPath) && Files.isSymbolicLink(stdinPath)) {
+    //         String actualTarget = Files.readSymbolicLink(stdinPath).toString();
             
-            // This is the money line:
-            return actualTarget.contains("/dev/pts") || actualTarget.contains("/dev/tty");
-        }
-    } catch (Throwable t) {
+    //         // This is the money line:
+    //         return actualTarget.contains("/dev/pts") || actualTarget.contains("/dev/tty");
+    //     }
+    // } catch (Throwable t) {
        
-        return false;
-    }
+    //     return false;
+    // }
 
-    return false;
+    // return false;
    
     }  
 
@@ -281,7 +281,7 @@ if (input.contains("|")) {
             }
         }
 
-        // Fallback: your existing recursive/threaded pipeline for other cases
+        
         runMultiPipeline(rawCommands, builtins, stdin, stdout);
         return;
 }
