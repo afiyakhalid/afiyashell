@@ -106,7 +106,7 @@ public class Main {
                         lastTabPrefix = null;
                         continue;
                     }
-                }
+                }//lets hope this works
                 if(c==9){
                     String line = inputbuffer.toString();
                     int spaceIdx = line.indexOf(' ');
