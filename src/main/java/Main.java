@@ -66,11 +66,45 @@ public class Main {
             System.out.flush();
              setRawMode(true);
              StringBuilder inputbuffer=new StringBuilder();
+             int historyIndex=history.size();
+            
+            
                String lastTabPrefix=null;
                 boolean tabPending=false;
              while(true){
                 int c=System.in.read();
-                
+                 if(c==27){
+                int next1=System.in.read();
+                if(next1==91){
+                    int next2=System.in.read();
+                    if(next2==65){
+                        if(historyIndex>0){
+                            historyIndex--;
+                            String prevCmd = history.get(historyIndex);
+                            System.out.print("033[2K\r$ " + prevCmd);
+                            System.out.flush();
+                            inputbuffer.setLength(0);
+                            inputbuffer.append(prevCmd);
+                        }
+                        }
+                        else if (next2 == 66) { 
+                            if (historyIndex < history.size()) {
+                                historyIndex++;
+                                String nextCmd = (historyIndex == history.size()) ? "" : history.get(historyIndex);
+                                
+                                System.out.print("\033[2K\r$ " + nextCmd);
+                                System.out.flush();
+                                
+                                inputbuffer.setLength(0);
+                                inputbuffer.append(nextCmd);
+                            }
+                        }
+                        
+                        tabPending = false;
+                        lastTabPrefix = null;
+                        continue;
+                    }
+                }
                 if(c==9){
                     String line = inputbuffer.toString();
                     int spaceIdx = line.indexOf(' ');
