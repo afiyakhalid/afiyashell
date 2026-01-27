@@ -232,28 +232,59 @@ public class Main {
 
     // }
     //     return false;
-    try {
-        if (System.console() != null) return true;
-    } catch (Throwable ignored) {}
+    // try {
+    //     if (System.console() != null) return true;
+    // } catch (Throwable ignored) {}
 
-    // 2) Unix fallback: check /dev/stdin and /dev/stdout
-    try {
-        Path in = Path.of("/dev/stdin").toRealPath();
-        Path out = Path.of("/dev/stdout").toRealPath();
-        boolean inIsTty = in.toString().startsWith("/dev/pts/") || in.toString().startsWith("/dev/tty");
-        boolean outIsTty = out.toString().startsWith("/dev/pts/") || out.toString().startsWith("/dev/tty");
-        if (inIsTty && outIsTty) return true;
-    } catch (Throwable ignored) {
-        // ignore; fall through to last resort
+    // // 2) Unix fallback: check /dev/stdin and /dev/stdout
+    // try {
+    //     Path in = Path.of("/dev/stdin").toRealPath();
+    //     Path out = Path.of("/dev/stdout").toRealPath();
+    //     boolean inIsTty = in.toString().startsWith("/dev/pts/") || in.toString().startsWith("/dev/tty");
+    //     boolean outIsTty = out.toString().startsWith("/dev/pts/") || out.toString().startsWith("/dev/tty");
+    //     if (inIsTty && outIsTty) return true;
+    // } catch (Throwable ignored) {
+    //     // ignore; fall through to last resort
+    // }
+
+    // // 3) Last resort: /dev/tty accessibility
+    // try {
+    //     Path devTty = Path.of("/dev/tty");
+    //     if (Files.exists(devTty) && Files.isReadable(devTty) && Files.isWritable(devTty)) return true;
+    // } catch (Throwable ignored) {}
+
+    // return false;
+
+    if (System.console() != null) {
+        return true;
     }
 
-    // 3) Last resort: /dev/tty accessibility
+    
     try {
-        Path devTty = Path.of("/dev/tty");
-        if (Files.exists(devTty) && Files.isReadable(devTty) && Files.isWritable(devTty)) return true;
-    } catch (Throwable ignored) {}
+    
+        Path stdinPath = Path.of("/proc/self/fd/0");
+        boolean stdinIsTerminal = false;
+        
+        if (Files.exists(stdinPath) && Files.isSymbolicLink(stdinPath)) {
+            String target = Files.readSymbolicLink(stdinPath).toString();
+            stdinIsTerminal = target.contains("/dev/pts") || target.contains("/dev/tty");
+        }
 
-    return false;
+        Path stdoutPath = Path.of("/proc/self/fd/1");
+        boolean stdoutIsTerminal = false;
+
+        if (Files.exists(stdoutPath) && Files.isSymbolicLink(stdoutPath)) {
+            String target = Files.readSymbolicLink(stdoutPath).toString();
+            stdoutIsTerminal = target.contains("/dev/pts") || target.contains("/dev/tty");
+        }
+
+       
+        return stdinIsTerminal;
+        
+    } catch (Throwable t) {
+       
+        return false;
+    }
   
 
   
