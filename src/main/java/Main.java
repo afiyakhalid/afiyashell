@@ -87,7 +87,7 @@ public class Main {
                             inputbuffer.setLength(0);
                             inputbuffer.append(prevCmd);
                         }
-                        }
+                        }//down arrow
                         else if (next2 == 66) { 
                             if (historyIndex < history.size()) {
                                 historyIndex++;
