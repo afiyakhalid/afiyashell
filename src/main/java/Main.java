@@ -182,20 +182,20 @@ public class Main {
         // } catch (Exception e) {
         //     return false;
         // }
-    //     try {
-    //     if (System.console() == null) return false;
+        try {
+        if (System.console() == null) return false;
 
-    //     String in = Path.of("/dev/stdin").toRealPath().toString();
-    //     String out = Path.of("/dev/stdout").toRealPath().toString();
+        String in = Path.of("/dev/stdin").toRealPath().toString();
+        String out = Path.of("/dev/stdout").toRealPath().toString();
 
-    //     boolean inIsTty = in.startsWith("/dev/pts/") || in.startsWith("/dev/tty");
-    //     boolean outIsTty = out.startsWith("/dev/pts/") || out.startsWith("/dev/tty");
+        boolean inIsTty = in.startsWith("/dev/pts/") || in.startsWith("/dev/tty");
+        boolean outIsTty = out.startsWith("/dev/pts/") || out.startsWith("/dev/tty");
 
-    //     return inIsTty && outIsTty;
-    // } catch (Exception e) {
-    //     return false;
-    // }
-    return System.console() != null;
+        return inIsTty && outIsTty;
+    } catch (Exception e) {
+        return false;
+    }
+    
    
     
         
