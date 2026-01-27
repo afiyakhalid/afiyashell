@@ -212,25 +212,25 @@ public class Main {
         }
     }
       private static boolean hasTty() {
-        // try {
-        //     Path tty = Path.of("/dev/tty");
-        //     return Files.isReadable(tty) && Files.isWritable(tty);
-        // } catch (Exception e) {
-        //     return false;
-        // }
         try {
-        if (System.console() == null) return false;
+            Path tty = Path.of("/dev/tty");
+            return Files.isReadable(tty) && Files.isWritable(tty);
+        } catch (Exception e) {
+            return false;
+        }
+    //     try {
+    //     if (System.console() == null) return false;
 
-        String in = Path.of("/dev/stdin").toRealPath().toString();
-        String out = Path.of("/dev/stdout").toRealPath().toString();
+    //     String in = Path.of("/dev/stdin").toRealPath().toString();
+    //     String out = Path.of("/dev/stdout").toRealPath().toString();
 
-        boolean inIsTty = in.startsWith("/dev/pts/") || in.startsWith("/dev/tty");
-        boolean outIsTty = out.startsWith("/dev/pts/") || out.startsWith("/dev/tty");
+    //     boolean inIsTty = in.startsWith("/dev/pts/") || in.startsWith("/dev/tty");
+    //     boolean outIsTty = out.startsWith("/dev/pts/") || out.startsWith("/dev/tty");
 
-        return inIsTty && outIsTty;
-    } catch (Exception e) {
-        return false;
-    }
+    //     return inIsTty && outIsTty;
+    // } catch (Exception e) {
+    //     return false;
+    // }
     
 
 
