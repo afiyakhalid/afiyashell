@@ -229,13 +229,12 @@ public class Main {
 
         return inIsTty && outIsTty;
     } catch (Exception e) {
-        
+
     }
         return false;
   
 
-    // 2. Fallback for Linux/Docker environments (like CodeCrafters)
-    // where System.console() is null but we are still connected to a PTY.
+  
    
 
 
