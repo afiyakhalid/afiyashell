@@ -218,38 +218,38 @@ public class Main {
         // } catch (Exception e) {
         //     return false;
         // }
-    //     try {
-    //     if (System.console() == null) return false;
+        try {
+        if (System.console() == null) return false;
 
-    //     String in = Path.of("/dev/stdin").toRealPath().toString();
-    //     String out = Path.of("/dev/stdout").toRealPath().toString();
+        String in = Path.of("/dev/stdin").toRealPath().toString();
+        String out = Path.of("/dev/stdout").toRealPath().toString();
 
-    //     boolean inIsTty = in.startsWith("/dev/pts/") || in.startsWith("/dev/tty");
-    //     boolean outIsTty = out.startsWith("/dev/pts/") || out.startsWith("/dev/tty");
+        boolean inIsTty = in.startsWith("/dev/pts/") || in.startsWith("/dev/tty");
+        boolean outIsTty = out.startsWith("/dev/pts/") || out.startsWith("/dev/tty");
 
-    //     return inIsTty && outIsTty;
-    // } catch (Exception e) {
-    //     return false;
-    // }
-    try {
-       
-        if (System.console() != null) return true;
-
-        
-        Path stdinPath = Path.of("/proc/self/fd/0");
-
-        if (Files.exists(stdinPath) && Files.isSymbolicLink(stdinPath)) {
-            String actualTarget = Files.readSymbolicLink(stdinPath).toString();
-            
-            // This is the money line:
-            return actualTarget.contains("/dev/pts") || actualTarget.contains("/dev/tty");
-        }
-    } catch (Throwable t) {
-       
+        return inIsTty && outIsTty;
+    } catch (Exception e) {
         return false;
     }
+    // try {
+       
+    //     if (System.console() != null) return true;
 
-    return false;
+        
+    //     Path stdinPath = Path.of("/proc/self/fd/0");
+
+    //     if (Files.exists(stdinPath) && Files.isSymbolicLink(stdinPath)) {
+    //         String actualTarget = Files.readSymbolicLink(stdinPath).toString();
+            
+    //         // This is the money line:
+    //         return actualTarget.contains("/dev/pts") || actualTarget.contains("/dev/tty");
+    //     }
+    // } catch (Throwable t) {
+       
+    //     return false;
+    // }
+
+    // return false;
    
     }  
 
