@@ -196,13 +196,10 @@ public class Main {
     //     return false;
     //}
     try {
-        // 1. If we have a JVM console, we are definitely interactive.
+       
         if (System.console() != null) return true;
 
-        // 2. STDIN Check for Linux/Docker:
-        // We check what File Descriptor 0 (STDIN) is actually pointing to.
-        // If it points to "pipe:[...]", we are PIPED (return false).
-        // If it points to "/dev/pts/..." or "/dev/tty", we are INTERACTIVE (return true).
+        
         Path stdinPath = Path.of("/proc/self/fd/0");
 
         if (Files.exists(stdinPath) && Files.isSymbolicLink(stdinPath)) {
@@ -212,8 +209,7 @@ public class Main {
             return actualTarget.contains("/dev/pts") || actualTarget.contains("/dev/tty");
         }
     } catch (Throwable t) {
-        // If anything goes wrong checking, default to FALSE (safe mode)
-        // so we don't break the automated tests.
+       
         return false;
     }
 
@@ -379,9 +375,31 @@ else{
         }
         } 
        }else if (input.startsWith("history")) {
-    for(int i=0;i<history.size();i++){
-        out.println((i+1) + " " + history.get(i));
+
+        
+        int n=history.size();
+        String [] args=parseArguments(input);
+        if (args.length == 1) {
+        for (int i = 0; i < history.size(); i++) {
+            out.println("    " + (i + 1) + "  " + history.get(i));
+        }
+        return;
     }
+        if(args.length>1){
+            try{
+            n=Integer.parseInt(args[1]);
+            }catch(NumberFormatException e){
+               
+            }
+            
+        
+           int startindex=Math.max(0,history.size()-n);
+    for (int i = startindex; i < history.size(); i++) {
+        
+        out.println("    " + (i + 1) + "  " + history.get(i));
+    }
+        }
+        
     
 }
        //what iswromg here
