@@ -458,21 +458,50 @@ else{
         //last history command
         int n=history.size();
         String [] args=parseArguments(input);
-        if(args.length>=3&&args[1].equals("-r")){
-                String filepath=args[2];
-                Path path=current.resolve(filepath);
-                if(Files.exists(path)){
-                    try{
-                    List<String> lines=Files.readAllLines(path);
-                    history.clear();
-                    history.addAll(lines);
-                    }catch(IOException e){
-                        out.println("history: " + filepath + ": Unable to read file");
-                    }
-                }else{
-                    out.println("history: " + filepath + ": No such file or directory");
-                }
-                return;
+        // if(args.length>=3&&args[1].equals("-r")){
+        //         String filepath=args[2];
+        //         Path path=current.resolve(filepath);
+        //         if(Files.exists(path)){
+        //             try{
+        //             List<String> lines=Files.readAllLines(path);
+        //             history.clear();
+        //             history.addAll(lines);
+        //             }catch(IOException e){
+        //                 out.println("history: " + filepath + ": Unable to read file");
+        //             }
+        //         }else{
+        //             out.println("history: " + filepath + ": No such file or directory");
+        //         }
+        //         return;
+        if (args.length >= 2 && args[1].equals("-r")) {
+    if (args.length < 3) {
+        out.println("history: -r requires a file operand");
+        return;
+    }
+    String filepath = args[2];
+    Path path = Paths.get(filepath);
+    if (!path.isAbsolute()) {
+        path = current.resolve(path).normalize();
+    }
+    if (Files.exists(path) && Files.isReadable(path)) {
+        try {
+            List<String> lines = Files.readAllLines(path);
+            for (String l : lines) {
+                if (l == null) continue;
+                // remove CR, trim, skip empty
+                String t = l.replace("\r", "").trim();
+                if (t.isEmpty()) continue;
+                // strip leading numeric history indexes like: "   3  echo foo"
+                t = t.replaceFirst("^\\s*\\d+\\s+", "");
+                history.add(t); // append to existing history (don't clear)
+            }
+        } catch (IOException e) {
+            out.println("history: " + filepath + ": Unable to read file");
+        }
+    } else {
+        out.println("history: " + filepath + ": No such file or directory");
+    }
+    return;
         }
         if (args.length == 1) {
         for (int i = 0; i < history.size(); i++) {
