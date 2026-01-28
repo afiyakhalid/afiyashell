@@ -488,12 +488,12 @@ else{
             List<String> lines = Files.readAllLines(path);
             for (String l : lines) {
                 if (l == null) continue;
-                // remove CR, trim, skip empty
+                
                 String t = l.replace("\r", "").trim();
                 if (t.isEmpty()) continue;
-                // strip leading numeric history indexes like: "   3  echo foo"
+              
                 t = t.replaceFirst("^\\s*\\d+\\s+", "");
-                history.add(t); // append to existing history (don't clear)
+                history.add(t); 
             }
         } catch (IOException e) {
             out.println("history: " + filepath + ": Unable to read file");
@@ -503,6 +503,35 @@ else{
     }
     return;
         }
+          if (args.length >= 2 && args[1].equals("-w")) {
+    if (args.length < 3) {
+        out.println("history: -r requires a file operand");
+        return;
+    }
+    String filepath = args[2];
+    Path path = Paths.get(filepath);
+    if (!path.isAbsolute()) {
+        path = current.resolve(path).normalize();
+    }
+    try{
+        Path parent=path.getParent();
+        if(parent!=null){
+            Files.createDirectories(parent);
+        }
+    
+    try(java.io.BufferedWriter writer=Files.newBufferedWriter(path, java.nio.charset.StandardCharsets.UTF_8)){ {
+        for(String h:history){
+            writer.write(h);
+            writer.newLine();
+        }
+        writer.newLine();
+    }
+    }
+    }catch (Exception e) {
+     out.println("history: " + filepath + ": Unable to write file");
+    }
+    return;
+} 
         if (args.length == 1) {
         for (int i = 0; i < history.size(); i++) {
             out.println("    " + (i + 1) + "  " + history.get(i));
