@@ -528,6 +528,7 @@ else{
             for (String h : history) {
                 if (h == null) continue;
                 bw.write(h);
+                 if (h.trim().isEmpty()) continue;
                 bw.newLine();
             }
             
