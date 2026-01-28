@@ -472,6 +472,7 @@ else{
                 }else{
                     out.println("history: " + filepath + ": No such file or directory");
                 }
+                return;
         }
         if (args.length == 1) {
         for (int i = 0; i < history.size(); i++) {
