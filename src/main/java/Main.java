@@ -455,7 +455,7 @@ else{
         } 
        }else if (input.startsWith("history")) {
 
-        
+        //last history command
         int n=history.size();
         String [] args=parseArguments(input);
         if(args.length>=3&&args[1].equals("-r")){
