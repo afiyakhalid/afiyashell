@@ -532,7 +532,7 @@ else{
                 bw.newLine();
             }
             
-            bw.newLine();
+           
         }
     } catch (IOException e) {
         out.println("history: " + filepath + ": Unable to write file");
