@@ -54,6 +54,26 @@ public class Main {
         String input = scanner.nextLine().trim();
         if (input.equals("exit")) break;
         history.add(input);
+        if (!input.isEmpty()) {
+            history.add(input);
+        }
+        if (input.equals("exit")) {
+            String histfile = System.getenv("HISTFILE");
+            if (histfile != null && !histfile.isBlank()) {
+                Path path = Paths.get(histfile);
+         
+                if (!path.isAbsolute()) path = current.resolve(path).normalize(); 
+                
+                try {
+                    if (path.getParent() != null) Files.createDirectories(path.getParent());
+                    Files.write(path, history, java.nio.charset.StandardCharsets.UTF_8,
+                            StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+                } catch (IOException e) {
+                    
+                }
+            }
+            break; 
+        }
 
         handleCommand(input, builtins, System.in, System.out);
     
@@ -205,6 +225,9 @@ public class Main {
              }
              setRawMode(false);
                 String input = inputbuffer.toString().trim();
+                if (!input.isEmpty()) {
+            history.add(input);
+        }
             if (input.equals("exit")) {
               String histfile = System.getenv("HISTFILE");
 if (histfile != null && !histfile.isBlank()) {
