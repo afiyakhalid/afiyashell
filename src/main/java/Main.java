@@ -302,18 +302,55 @@ if (historyfile != null && !historyfile.isBlank()) {
 
     // return false;
 
-     try {
+    //  try {
+    //     if (System.console() != null) return true;
+    // } catch (Throwable ignored) {}
+
+    // try {
+    //     Path fd0 = Path.of("/proc/self/fd/0");
+    //     if (Files.exists(fd0) && Files.isSymbolicLink(fd0)) {
+    //         String target = Files.readSymbolicLink(fd0).toString();
+    //         if (target.contains("/dev/pts") || target.contains("/dev/tty")) return true;
+    //     }
+    // } catch (Throwable ignored) {}
+
+    // try {
+    //     Path stdin = Path.of("/dev/stdin");
+    //     Path stdout = Path.of("/dev/stdout");
+    //     if (Files.exists(stdin) && Files.exists(stdout)) {
+    //         String in = stdin.toRealPath().toString();
+    //         String out = stdout.toRealPath().toString();
+    //         if ((in.startsWith("/dev/pts/") || in.startsWith("/dev/tty")) &&
+    //             (out.startsWith("/dev/pts/") || out.startsWith("/dev/tty"))) {
+    //             return true;
+    //         }
+    //     }
+    // } catch (Throwable ignored) {}
+
+    // try {
+    //     Path devTty = Path.of("/dev/tty");
+    //     if (Files.exists(devTty) && Files.isReadable(devTty) && Files.isWritable(devTty)) return true;
+    // } catch (Throwable ignored) {}
+
+    // return false;}
+
+   
+
+    try {
         if (System.console() != null) return true;
     } catch (Throwable ignored) {}
 
+    // 2) /proc/self/fd/0 -> real target (works on most Linux containers)
     try {
         Path fd0 = Path.of("/proc/self/fd/0");
         if (Files.exists(fd0) && Files.isSymbolicLink(fd0)) {
-            String target = Files.readSymbolicLink(fd0).toString();
-            if (target.contains("/dev/pts") || target.contains("/dev/tty")) return true;
+            Path target = Files.readSymbolicLink(fd0);
+            String ts = target.toString();
+            if (ts.contains("/dev/pts/") || ts.contains("/dev/tty")) return true;
         }
     } catch (Throwable ignored) {}
 
+    // 3) /dev/stdin and /dev/stdout realpath check
     try {
         Path stdin = Path.of("/dev/stdin");
         Path stdout = Path.of("/dev/stdout");
@@ -327,29 +364,27 @@ if (historyfile != null && !historyfile.isBlank()) {
         }
     } catch (Throwable ignored) {}
 
+    // 4) /dev/tty accessibility
     try {
         Path devTty = Path.of("/dev/tty");
         if (Files.exists(devTty) && Files.isReadable(devTty) && Files.isWritable(devTty)) return true;
     } catch (Throwable ignored) {}
 
+    // 5) Shell test fallback: test -t 0 && test -t 1  (run with a short timeout)
+    try {
+        Process p = new ProcessBuilder("sh", "-c", "test -t 0 && test -t 1").redirectErrorStream(true).start();
+        boolean finished = p.waitFor(150, java.util.concurrent.TimeUnit.MILLISECONDS);
+        if (finished && p.exitValue() == 0) return true;
+        // if it didn't finish quickly, destroy it to avoid hanging
+        if (p.isAlive()) {
+            p.destroy();
+        }
+    } catch (Throwable ignored) {}
+
+    // default: no tty
     return false;
+} //handling commands
 
-   
-//    if (System.console() != null) return true;
-
-//     // 2. The "Descriptor" Way (Checking if STDIN is a terminal)
-//     // We check if the 'stty' command succeeds. If it fails, we are likely being piped into.
-//     try {
-//         Process p = new ProcessBuilder("sh", "-c", "tty < /dev/tty").start();
-//         return p.waitFor() == 0;
-//     } catch (Exception e) {
-//         return false;
-//     }
-
-
-   
-   
-    }  
 
 private static void handleCommand(String input, List<String> builtins, java.io.InputStream stdin, java.io.OutputStream stdout) throws Exception {
     java.io.PrintStream out = new java.io.PrintStream(stdout, true, "UTF-8");
