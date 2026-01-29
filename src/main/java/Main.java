@@ -383,23 +383,55 @@ if (historyfile != null && !historyfile.isBlank()) {
 
 //     return false;
 // } //handling commands
-if (System.console() != null) {
-        return true;
-    }
+// if (System.console() != null) {
+//         return true;
+//     }
 
-    // 2. The Reliable Unix Way (Checks specifically if STDIN is a TTY)
-    // We run "test -t 0".
-    // Exit code 0 = Yes, it's a TTY.
-    // Exit code 1 = No, it's a pipe/file.
+  
+//     try {
+//         ProcessBuilder pb = new ProcessBuilder("sh", "-c", "test -t 0");
+//         Process p = pb.start();
+//         int exitCode = p.waitFor();
+//         return exitCode == 0;
+//     } catch (Exception e) {
+        
+//         return false;
+//     }
+// }
+if (System.console() != null) return true;
+
+    // 2. Check /proc/self/fd/0
+    // This is the GOLD STANDARD for Linux containers (like CodeCrafters).
+    // It checks what Standard Input is actually connected to.
     try {
-        ProcessBuilder pb = new ProcessBuilder("sh", "-c", "test -t 0");
-        Process p = pb.start();
-        int exitCode = p.waitFor();
-        return exitCode == 0;
-    } catch (Exception e) {
-        // If we can't run 'sh', strictly assume false to be safe.
-        return false;
-    }
+        Path fd0 = Path.of("/proc/self/fd/0");
+        if (Files.exists(fd0) && Files.isSymbolicLink(fd0)) {
+            // Read where the link points
+            String target = Files.readSymbolicLink(fd0).toString();
+            
+            // If it points to a Pseudo-Terminal (pts) or tty, it's interactive.
+            // If it points to "pipe:[1234]", it returns FALSE (which is what we want for pipes).
+            if (target.contains("/dev/pts") || target.contains("/dev/tty")) {
+                return true;
+            }
+        }
+    } catch (Throwable ignored) {}
+
+    // 3. Fallback: Check /dev/stdin resolution
+    try {
+        Path stdin = Path.of("/dev/stdin");
+        if (Files.exists(stdin)) {
+            String target = stdin.toRealPath().toString();
+            if (target.contains("/dev/pts") || target.contains("/dev/tty")) {
+                return true;
+            }
+        }
+    } catch (Throwable ignored) {}
+
+    // CRITICAL: Do NOT check if /dev/tty is readable here. 
+    // That was causing the failure on pipe tests.
+
+    return false;
 }
 
 
