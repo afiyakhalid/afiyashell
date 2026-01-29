@@ -467,227 +467,133 @@ else{
         out.println(commandtocheck + ": not found");
         }
         } 
-//        }else if (input.startsWith("history")) {
+       }else if (input.startsWith("history")) {
 
-//         //last history command
-//         int n=history.size();
-//         String [] args=parseArguments(input);
+        //last history command
+        int n=history.size();
+        String [] args=parseArguments(input);
        
-//         if (args.length >= 2 && args[1].equals("-r")) {
-//     if (args.length < 3) {
-//         out.println("history: -r requires a file operand");
-//         return;
-//     }
-//     String filepath = args[2];
-//     Path path = Paths.get(filepath);
-//     if (!path.isAbsolute()) {
-//         path = current.resolve(path).normalize();
-//     }
-//     if (Files.exists(path) && Files.isReadable(path)) {
-//         try {
-//             List<String> lines = Files.readAllLines(path);
-//             for (String l : lines) {
-//                 if (l == null) continue;
+        if (args.length >= 2 && args[1].equals("-r")) {
+    if (args.length < 3) {
+        out.println("history: -r requires a file operand");
+        return;
+    }
+    String filepath = args[2];
+    Path path = Paths.get(filepath);
+    if (!path.isAbsolute()) {
+        path = current.resolve(path).normalize();
+    }
+    if (Files.exists(path) && Files.isReadable(path)) {
+        try {
+            List<String> lines = Files.readAllLines(path);
+            for (String l : lines) {
+                if (l == null) continue;
                 
-//                 String t = l.replace("\r", "").trim();
-//                 if (t.isEmpty()) continue;
+                String t = l.replace("\r", "").trim();
+                if (t.isEmpty()) continue;
               
-//                 t = t.replaceFirst("^\\s*\\d+\\s+", "");
-//                 history.add(t); 
-//             }
-//         } catch (IOException e) {
-//             out.println("history: " + filepath + ": Unable to read file");
-//         }
-//     } else {
-//         out.println("history: " + filepath + ": No such file or directory");
-//     }
-//     return;
-//         }
-//          else if (args.length >= 2 && args[1].equals("-w")) {
-//     if (args.length < 3) {
-//         out.println("history: -w requires a file operand");
-//         return;
-//     }
+                t = t.replaceFirst("^\\s*\\d+\\s+", "");
+                history.add(t); 
+            }
+        } catch (IOException e) {
+            out.println("history: " + filepath + ": Unable to read file");
+        }
+    } else {
+        out.println("history: " + filepath + ": No such file or directory");
+    }
+    return;
+        }
+         else if (args.length >= 2 && args[1].equals("-w")) {
+    if (args.length < 3) {
+        out.println("history: -w requires a file operand");
+        return;
+    }
     
-//     String filepath = args[2];
-//     Path path = Paths.get(filepath);
-//     if (!path.isAbsolute()) {
-//         path = current.resolve(path).normalize();
-//     }
-//     try {
-//         Path parent = path.getParent();
-//         if (parent != null) {
-//             Files.createDirectories(parent);
-//         }
+    String filepath = args[2];
+    Path path = Paths.get(filepath);
+    if (!path.isAbsolute()) {
+        path = current.resolve(path).normalize();
+    }
+    try {
+        Path parent = path.getParent();
+        if (parent != null) {
+            Files.createDirectories(parent);
+        }
         
-//         try (java.io.BufferedWriter bw = Files.newBufferedWriter(path, java.nio.charset.StandardCharsets.UTF_8)) {
-//             for (String h : history) {
-//                 if (h == null) continue;
-//                 bw.write(h);
-//                  if (h.trim().isEmpty()) continue;
-//                 bw.newLine();
-//             }
+        try (java.io.BufferedWriter bw = Files.newBufferedWriter(path, java.nio.charset.StandardCharsets.UTF_8)) {
+            for (String h : history) {
+                if (h == null) continue;
+                bw.write(h);
+                 if (h.trim().isEmpty()) continue;
+                bw.newLine();
+            }
             
            
-//         }
-//     } catch (IOException e) {
-//         out.println("history: " + filepath + ": Unable to write file");
-//     }
-//     return; 
-// }
+        }
+    } catch (IOException e) {
+        out.println("history: " + filepath + ": Unable to write file");
+    }
+    return; 
+}
  
-//  else if(args.length>=2&&args[1].equals("-a")){
-// if (args.length < 3) {
-//         out.println("history: -a requires a file operand");
-//         return;
-//     }
-//     String filepath = args[2];
-//     Path path = Paths.get(filepath);
-//     if (!path.isAbsolute()) {
-//         path = current.resolve(path).normalize();
-//     }
-//     try {
-//       if (path.getParent() != null) Files.createDirectories(path.getParent());
+ else if(args.length>=2&&args[1].equals("-a")){
+if (args.length < 3) {
+        out.println("history: -a requires a file operand");
+        return;
+    }
+    String filepath = args[2];
+    Path path = Paths.get(filepath);
+    if (!path.isAbsolute()) {
+        path = current.resolve(path).normalize();
+    }
+    try {
+      if (path.getParent() != null) Files.createDirectories(path.getParent());
             
             
-//             Files.write(path, history, java.nio.charset.StandardCharsets.UTF_8, 
-//                 java.nio.file.StandardOpenOption.CREATE, 
-//                 java.nio.file.StandardOpenOption.APPEND,
-//                 java.nio.file.StandardOpenOption.WRITE);
-//     } catch (Exception e) {
-//         out.println("history: " + filepath + ": Unable to write file");
-//     }
-//     return;
-// }else{
-//         if (args.length == 1) {
-//         for (int i = 0; i < history.size(); i++) {
-//             out.println("    " + (i + 1) + "  " + history.get(i));
-//         }
-//         return;
-//     }
-//         if(args.length>1){
-//             try{
-//             n=Integer.parseInt(args[1]);
-//             }catch(NumberFormatException e){
-               
-//             }
-            
-        
-//            int startindex=Math.max(0,history.size()-n);
-//     for (int i = startindex; i < history.size(); i++) {
-        
-//         out.println("    " + (i + 1) + "  " + history.get(i));
-//     }
-//         }
-// }
-        
-    
-// }
-}else if (input.startsWith("history")) {
-    String[] args = input.trim().split("\\s+");
-    int n = 0;
-
-    // -----------------------------------------------------
-    // CASE 1: history -r <file> (READ)
-    // -----------------------------------------------------
-    if (args.length >= 2 && args[1].equals("-r")) {
-        if (args.length < 3) {
-            out.println("history: -r requires a file operand");
-            return;
-        }
-        String filepath = args[2];
-        Path path = Paths.get(filepath);
-        if (!path.isAbsolute()) path = current.resolve(path).normalize();
-
+            int existing = 0;
         if (Files.exists(path) && Files.isReadable(path)) {
-            try {
-                List<String> lines = Files.readAllLines(path);
-                for (String l : lines) {
-                    if (l == null) continue;
-                    String t = l.replace("\r", "").trim();
-                    if (!t.isEmpty()) {
-                        t = t.replaceFirst("^\\s*\\d+\\s+", ""); 
-                        history.add(t);
-                    }
-                }
-            } catch (IOException e) {
-                out.println("history: " + filepath + ": Unable to read file");
-            }
-        } else {
-            out.println("history: " + filepath + ": No such file or directory");
-        }
-    } 
-
-    // -----------------------------------------------------
-    // CASE 2: history -w <file> (OVERWRITE / TRUNCATE)
-    // -----------------------------------------------------
-    else if (args.length >= 2 && args[1].equals("-w")) {
-        if (args.length < 3) {
-            out.println("history: -w requires a file operand");
-            return;
-        }
-        String filepath = args[2];
-        Path path = Paths.get(filepath);
-        if (!path.isAbsolute()) path = current.resolve(path).normalize();
-
-        try {
-            if (path.getParent() != null) Files.createDirectories(path.getParent());
-            
-            // NOTICE: This uses TRUNCATE_EXISTING (Deletes old content)
-            Files.write(path, history, java.nio.charset.StandardCharsets.UTF_8, 
-                java.nio.file.StandardOpenOption.CREATE, 
-                java.nio.file.StandardOpenOption.TRUNCATE_EXISTING,
-                java.nio.file.StandardOpenOption.WRITE);
-        } catch (IOException e) {
-            out.println("history: " + filepath + ": Unable to write file");
-        }
-    }
-
-    // -----------------------------------------------------
-    // CASE 3: history -a <file> (APPEND)
-    // -----------------------------------------------------
-    else if (args.length >= 2 && args[1].equals("-a")) {
-        if (args.length < 3) {
-            out.println("history: -a requires a file operand");
-            return;
-        }
-        String filepath = args[2];
-        Path path = Paths.get(filepath);
-        if (!path.isAbsolute()) path = current.resolve(path).normalize();
-
-        try {
-            if (path.getParent() != null) Files.createDirectories(path.getParent());
-
-            // NOTICE: This uses APPEND (Keeps old content)
-            Files.write(path, history, java.nio.charset.StandardCharsets.UTF_8, 
-                java.nio.file.StandardOpenOption.CREATE, 
-                java.nio.file.StandardOpenOption.APPEND, 
-                java.nio.file.StandardOpenOption.WRITE);
-        } catch (IOException e) {
-            out.println("history: " + filepath + ": Unable to write file");
-        }
-    }
-
-    // -----------------------------------------------------
-    // CASE 4: List History (Standard)
-    // -----------------------------------------------------
-    else {
-        // Check for numeric argument (e.g., "history 10")
-        if (args.length > 1) {
-            try {
-                n = Integer.parseInt(args[1]);
-            } catch (NumberFormatException e) {
-                // Ignore if arg is not a number
+            try (Stream<String> lines = Files.lines(path, java.nio.charset.StandardCharsets.UTF_8)) {
+                existing = (int) lines.filter(s -> !s.trim().isEmpty()).count();
             }
         }
 
-        int startIndex = 0;
-        if (n > 0) startIndex = Math.max(0, history.size() - n);
-
-        for (int i = startIndex; i < history.size(); i++) {
+        // Append only the new entries
+        int from = Math.max(0, Math.min(existing, history.size()));
+        if (from < history.size()) {
+            List<String> toAppend = new ArrayList<>(history.subList(from, history.size()));
+            Files.write(path, toAppend, java.nio.charset.StandardCharsets.UTF_8,
+                java.nio.file.StandardOpenOption.CREATE,
+                java.nio.file.StandardOpenOption.APPEND,
+                java.nio.file.StandardOpenOption.WRITE);
+        }
+    }  catch (IOException e) {
+        out.println("history: " + filepath + ": Unable to write file");
+    }
+    return;
+}else{
+        if (args.length == 1) {
+        for (int i = 0; i < history.size(); i++) {
             out.println("    " + (i + 1) + "  " + history.get(i));
         }
+        return;
     }
+        if(args.length>1){
+            try{
+            n=Integer.parseInt(args[1]);
+            }catch(NumberFormatException e){
+               
+            }
+            
+        
+           int startindex=Math.max(0,history.size()-n);
+    for (int i = startindex; i < history.size(); i++) {
+        
+        out.println("    " + (i + 1) + "  " + history.get(i));
+    }
+        }
+}
+        
+    
 }
        //what iswromg here
        else if(input.equals("pwd")) {
