@@ -24,19 +24,26 @@ public class Main {
      private static int historyWriteIndex = 0;
     public static void main(String[] args) throws Exception {
    
-       String historyfile=System.getenv("HISTFILE");
-         if(historyfile!=null){
-            Path path=Paths.get(historyfile);
-            if(Files.exists(path)){
-                try{
-                List<String> lines=Files.readAllLines(path);
-                history.addAll(lines);
-                }catch (IOException e) {
-        
+      String historyfile = System.getenv("HISTFILE");
+if (historyfile != null && !historyfile.isBlank()) {
+    Path histPath = Paths.get(historyfile);
+    if (!histPath.isAbsolute()) histPath = current.resolve(histPath).normalize();
+    if (Files.exists(histPath) && Files.isReadable(histPath)) {
+        try (Stream<String> lines = Files.lines(histPath, java.nio.charset.StandardCharsets.UTF_8)) {
+            lines.forEach(l -> {
+                if (l == null) return;
+                String t = l.replace("\r", "").trim();
+                if (t.isEmpty()) return;                     
+                t = t.replaceFirst("^\\s*\\d+\\s+", "");     
+                if (!t.isEmpty()) history.add(t);
+            });
+          
+            historyWriteIndex = history.size();
+        } catch (IOException e) {
+            System.err.println("warning: unable to read HISTFILE " + histPath + ": " + e.getMessage());
         }
-                
-            }
-         }
+    }
+}
       
         List<String> builtins=Arrays.asList("echo","exit","type","pwd","cd","history");
      boolean interactive = hasTty();
@@ -54,26 +61,7 @@ public class Main {
         String input = scanner.nextLine().trim();
         if (input.equals("exit")) break;
         history.add(input);
-        if (!input.isEmpty()) {
-            history.add(input);
-        }
-        if (input.equals("exit")) {
-            String histfile = System.getenv("HISTFILE");
-            if (histfile != null && !histfile.isBlank()) {
-                Path path = Paths.get(histfile);
-         
-                if (!path.isAbsolute()) path = current.resolve(path).normalize(); 
-                
-                try {
-                    if (path.getParent() != null) Files.createDirectories(path.getParent());
-                    Files.write(path, history, java.nio.charset.StandardCharsets.UTF_8,
-                            StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
-                } catch (IOException e) {
-                    
-                }
-            }
-            break; 
-        }
+        
 
         handleCommand(input, builtins, System.in, System.out);
     
@@ -229,24 +217,43 @@ public class Main {
             history.add(input);
         }
             if (input.equals("exit")) {
-              String histfile = System.getenv("HISTFILE");
-if (histfile != null && !histfile.isBlank()) {
-    Path path = Paths.get(histfile);
-    if (!path.isAbsolute()) path = current.resolve(path).normalize();
-    try {
-        if (path.getParent() != null) Files.createDirectories(path.getParent());
-        Files.write(path, history, java.nio.charset.StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
-        historyWriteIndex = history.size();
-    } catch (IOException e) {
-        System.err.println("warning: unable to write HISTFILE " + path + ": " + e.getMessage());
-    }
-}
+//               String histfile = System.getenv("HISTFILE");
+// if (histfile != null && !histfile.isBlank()) {
+//     Path path = Paths.get(histfile);
+//     if (!path.isAbsolute()) path = current.resolve(path).normalize();
+//     try {
+//         if (path.getParent() != null) Files.createDirectories(path.getParent());
+//         Files.write(path, history, java.nio.charset.StandardCharsets.UTF_8,
+//                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+//         historyWriteIndex = history.size();
+//     } catch (IOException e) {
+//         System.err.println("warning: unable to write HISTFILE " + path + ": " + e.getMessage());
+//     }
+// }
                 // break;
-                System.exit(0);
+            //     System.exit(0);
                 
-            }
-            history.add(input);
+            // }
+            // history.add(input);
+            String histfile = System.getenv("HISTFILE");
+    if (histfile != null && !histfile.isBlank()) {
+        Path path = Paths.get(histfile);
+        if (!path.isAbsolute()) path = current.resolve(path).normalize();
+        try {
+            if (path.getParent() != null) Files.createDirectories(path.getParent());
+            Files.write(path, history, java.nio.charset.StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+            historyWriteIndex = history.size();
+        } catch (IOException e) {
+            System.err.println("warning: unable to write HISTFILE " + path + ": " + e.getMessage());
+        }
+    }
+    System.exit(0);
+}
+
+if (!input.isEmpty()) {
+    history.add(input);
+}
 
             handleCommand(input, builtins, System.in, System.out);
         }
@@ -623,6 +630,7 @@ else{
                             String t = l.trim().replaceAll("^\\s*\\d+\\s+", "");
                             if (!t.isEmpty()) history.add(t);
                         }
+                   
                         // If we read history from a file, we can optionally advance the writeIndex 
                         // so we don't duplicate these back to disk, or leave it to duplicate. 
                         // Standard bash usually appends file content to memory.
@@ -632,6 +640,7 @@ else{
                 } else {
                     out.println("history: " + args[2] + ": No such file or directory");
                 }
+                  historyWriteIndex = history.size();
             }
             // HISTORY WRITE (Truncate)
             else if (args.length >= 2 && args[1].equals("-w")) {
@@ -645,9 +654,11 @@ else{
                     if (path.getParent() != null) Files.createDirectories(path.getParent());
                     Files.write(path, history, java.nio.charset.StandardCharsets.UTF_8,
                             StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
-                } catch (IOException e) {
+                } 
+                catch (IOException e) {
                     out.println("history: " + args[2] + ": Unable to write file");
                 }
+                historyWriteIndex = history.size();
             } 
             // HISTORY APPEND (The fix is here)
             else if (args.length >= 2 && args[1].equals("-a")) {
