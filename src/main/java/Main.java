@@ -24,7 +24,19 @@ public class Main {
      private static int historyWriteIndex = 0;
     public static void main(String[] args) throws Exception {
    
-       
+       String historyfile=System.getenv("HISTFILE");
+         if(historyfile!=null){
+            Path path=Paths.get(historyfile);
+            if(Files.exists(path)){
+                try{
+                List<String> lines=Files.readAllLines(path);
+                history.addAll(lines);
+                }catch (IOException e) {
+        
+        }
+                
+            }
+         }
       
         List<String> builtins=Arrays.asList("echo","exit","type","pwd","cd","history");
      boolean interactive = hasTty();
