@@ -43,23 +43,23 @@ public class Main {
         //     return;
         // }
         if (!interactive) {
-    // Scanner scanner = new Scanner(System.in);
-    // while (true) {
-    //     System.out.print("$ ");
-    //     System.out.flush();
-
-    //     if (!scanner.hasNextLine()) break; // EOF
-
-    //     String input = scanner.nextLine().trim();
-    //     if (input.equals("exit")) break;
-    //     history.add(input);
-
-    //     handleCommand(input, builtins, System.in, System.out);
     Scanner scanner = new Scanner(System.in);
-        while (scanner.hasNextLine()) {
-            String input = scanner.nextLine().trim();
-            if (input.equals("exit")) break;
-            handleCommand(input, builtins, System.in, System.out);
+    while (true) {
+        System.out.print("$ ");
+        System.out.flush();
+
+        if (!scanner.hasNextLine()) break; // EOF
+
+        String input = scanner.nextLine().trim();
+        if (input.equals("exit")) break;
+        history.add(input);
+
+        handleCommand(input, builtins, System.in, System.out);
+    // Scanner scanner = new Scanner(System.in);
+    //     while (scanner.hasNextLine()) {
+    //         String input = scanner.nextLine().trim();
+    //         if (input.equals("exit")) break;
+    //         handleCommand(input, builtins, System.in, System.out);
     }
     return;
         }
@@ -238,28 +238,28 @@ public class Main {
     // }
     //     return false;
 
-    // try {
-    //     if (System.console() != null) return true;
-    // } catch (Throwable ignored) {}
+    try {
+        if (System.console() != null) return true;
+    } catch (Throwable ignored) {}
 
-    // // 2) Unix fallback: check /dev/stdin and /dev/stdout
-    // try {
-    //     Path in = Path.of("/dev/stdin").toRealPath();
-    //     Path out = Path.of("/dev/stdout").toRealPath();
-    //     boolean inIsTty = in.toString().startsWith("/dev/pts/") || in.toString().startsWith("/dev/tty");
-    //     boolean outIsTty = out.toString().startsWith("/dev/pts/") || out.toString().startsWith("/dev/tty");
-    //     if (inIsTty && outIsTty) return true;
-    // } catch (Throwable ignored) {
-    //     // ignore; fall through to last resort
-    // }
+    // 2) Unix fallback: check /dev/stdin and /dev/stdout
+    try {
+        Path in = Path.of("/dev/stdin").toRealPath();
+        Path out = Path.of("/dev/stdout").toRealPath();
+        boolean inIsTty = in.toString().startsWith("/dev/pts/") || in.toString().startsWith("/dev/tty");
+        boolean outIsTty = out.toString().startsWith("/dev/pts/") || out.toString().startsWith("/dev/tty");
+        if (inIsTty && outIsTty) return true;
+    } catch (Throwable ignored) {
+        // ignore; fall through to last resort
+    }
 
-    // // 3) Last resort: /dev/tty accessibility
-    // try {
-    //     Path devTty = Path.of("/dev/tty");
-    //     if (Files.exists(devTty) && Files.isReadable(devTty) && Files.isWritable(devTty)) return true;
-    // } catch (Throwable ignored) {}
+    // 3) Last resort: /dev/tty accessibility
+    try {
+        Path devTty = Path.of("/dev/tty");
+        if (Files.exists(devTty) && Files.isReadable(devTty) && Files.isWritable(devTty)) return true;
+    } catch (Throwable ignored) {}
 
-    // return false;
+    return false;
 
     //  try {
     //     if (System.console() != null) return true;
@@ -294,16 +294,16 @@ public class Main {
     // return false;
 
    
-   if (System.console() != null) return true;
+//    if (System.console() != null) return true;
 
-    // 2. The "Descriptor" Way (Checking if STDIN is a terminal)
-    // We check if the 'stty' command succeeds. If it fails, we are likely being piped into.
-    try {
-        Process p = new ProcessBuilder("sh", "-c", "tty < /dev/tty").start();
-        return p.waitFor() == 0;
-    } catch (Exception e) {
-        return false;
-    }
+//     // 2. The "Descriptor" Way (Checking if STDIN is a terminal)
+//     // We check if the 'stty' command succeeds. If it fails, we are likely being piped into.
+//     try {
+//         Process p = new ProcessBuilder("sh", "-c", "tty < /dev/tty").start();
+//         return p.waitFor() == 0;
+//     } catch (Exception e) {
+//         return false;
+//     }
 
 
    
