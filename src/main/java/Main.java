@@ -390,22 +390,22 @@ String histfile = System.getenv("HISTFILE");
 
     return false;
 } 
-handling commands
-if (System.console() != null) {
-        return true;
-    }
+// handling commands
+// if (System.console() != null) {
+//         return true;
+//     }
 
   
-    try {
-        ProcessBuilder pb = new ProcessBuilder("sh", "-c", "test -t 0");
-        Process p = pb.start();
-        int exitCode = p.waitFor();
-        return exitCode == 0;
-    } catch (Exception e) {
+//     try {
+//         ProcessBuilder pb = new ProcessBuilder("sh", "-c", "test -t 0");
+//         Process p = pb.start();
+//         int exitCode = p.waitFor();
+//         return exitCode == 0;
+//     } catch (Exception e) {
         
-        return false;
-    }
-}
+//         return false;
+//     }
+// }
 
 
 
