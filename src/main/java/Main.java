@@ -383,20 +383,25 @@ if (historyfile != null && !historyfile.isBlank()) {
 
 //     return false;
 // } //handling commands
-if (System.console() != null) return true;
-
-   
-    try {
-        java.io.File tty = new java.io.File("/dev/tty");
-        if (tty.exists() && tty.canRead()) {
-            return true;
-        }
-    } catch (Exception e) {
-        
+if (System.console() != null) {
+        return true;
     }
 
-    return false;
+    // 2. The Reliable Unix Way (Checks specifically if STDIN is a TTY)
+    // We run "test -t 0".
+    // Exit code 0 = Yes, it's a TTY.
+    // Exit code 1 = No, it's a pipe/file.
+    try {
+        ProcessBuilder pb = new ProcessBuilder("sh", "-c", "test -t 0");
+        Process p = pb.start();
+        int exitCode = p.waitFor();
+        return exitCode == 0;
+    } catch (Exception e) {
+        // If we can't run 'sh', strictly assume false to be safe.
+        return false;
+    }
 }
+
 
 
 private static void handleCommand(String input, List<String> builtins, java.io.InputStream stdin, java.io.OutputStream stdout) throws Exception {
