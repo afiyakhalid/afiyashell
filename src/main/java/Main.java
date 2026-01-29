@@ -517,16 +517,12 @@ else{
     }
     return;
         }
-          if (args.length >= 2 && args[1].equals("-w")) {
-    if (args.length < 3) {
-        out.println("history: -r requires a file operand");
-        return;
-    }
-    if (args.length >= 2 && args[1].equals("-w")) {
+         else if (args.length >= 2 && args[1].equals("-w")) {
     if (args.length < 3) {
         out.println("history: -w requires a file operand");
         return;
     }
+    
     String filepath = args[2];
     Path path = Paths.get(filepath);
     if (!path.isAbsolute()) {
@@ -553,10 +549,10 @@ else{
     }
     return; 
 }
-} 
-if(args.length>=2&&args[1].equals("-a")){
+ 
+ else if(args.length>=2&&args[1].equals("-a")){
 if (args.length < 3) {
-        out.println("history: -w requires a file operand");
+        out.println("history: -a requires a file operand");
         return;
     }
     String filepath = args[2];
@@ -576,7 +572,7 @@ if (args.length < 3) {
         out.println("history: " + filepath + ": Unable to write file");
     }
     return;
-}
+}else{
         if (args.length == 1) {
         for (int i = 0; i < history.size(); i++) {
             out.println("    " + (i + 1) + "  " + history.get(i));
@@ -597,6 +593,7 @@ if (args.length < 3) {
         out.println("    " + (i + 1) + "  " + history.get(i));
     }
         }
+}
         
     
 }
