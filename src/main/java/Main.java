@@ -217,12 +217,12 @@ public class Main {
         }
     }
       private static boolean hasTty() {
-        // try {
-        //     Path tty = Path.of("/dev/tty");
-        //     return Files.isReadable(tty) && Files.isWritable(tty);
-        // } catch (Exception e) {
-        //     return false;
-        // }
+        try {
+            Path tty = Path.of("/dev/tty");
+            return Files.isReadable(tty) && Files.isWritable(tty);
+        } catch (Exception e) {
+            return false;
+        }
     //     try {
     //     if (System.console() == null) return false;
 
@@ -238,28 +238,28 @@ public class Main {
     // }
     //     return false;
 
-    try {
-        if (System.console() != null) return true;
-    } catch (Throwable ignored) {}
+    // try {
+    //     if (System.console() != null) return true;
+    // } catch (Throwable ignored) {}
 
-    // 2) Unix fallback: check /dev/stdin and /dev/stdout
-    try {
-        Path in = Path.of("/dev/stdin").toRealPath();
-        Path out = Path.of("/dev/stdout").toRealPath();
-        boolean inIsTty = in.toString().startsWith("/dev/pts/") || in.toString().startsWith("/dev/tty");
-        boolean outIsTty = out.toString().startsWith("/dev/pts/") || out.toString().startsWith("/dev/tty");
-        if (inIsTty && outIsTty) return true;
-    } catch (Throwable ignored) {
-        // ignore; fall through to last resort
-    }
+    // // 2) Unix fallback: check /dev/stdin and /dev/stdout
+    // try {
+    //     Path in = Path.of("/dev/stdin").toRealPath();
+    //     Path out = Path.of("/dev/stdout").toRealPath();
+    //     boolean inIsTty = in.toString().startsWith("/dev/pts/") || in.toString().startsWith("/dev/tty");
+    //     boolean outIsTty = out.toString().startsWith("/dev/pts/") || out.toString().startsWith("/dev/tty");
+    //     if (inIsTty && outIsTty) return true;
+    // } catch (Throwable ignored) {
+    //     // ignore; fall through to last resort
+    // }
 
-    // 3) Last resort: /dev/tty accessibility
-    try {
-        Path devTty = Path.of("/dev/tty");
-        if (Files.exists(devTty) && Files.isReadable(devTty) && Files.isWritable(devTty)) return true;
-    } catch (Throwable ignored) {}
+    // // 3) Last resort: /dev/tty accessibility
+    // try {
+    //     Path devTty = Path.of("/dev/tty");
+    //     if (Files.exists(devTty) && Files.isReadable(devTty) && Files.isWritable(devTty)) return true;
+    // } catch (Throwable ignored) {}
 
-    return false;
+    // return false;
 
     //  try {
     //     if (System.console() != null) return true;
