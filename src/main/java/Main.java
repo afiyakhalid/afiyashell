@@ -210,12 +210,15 @@ public class Main {
                 if(histfile!=null){
                     try{
                     Path path=Paths.get(histfile);
-                    Files.write(path, history, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                    Files.write(path, history);
+              
                     }catch (IOException e) {
         
         }
                 }
-                break; 
+                // break;
+                System.exit(0);
+                
             }
             history.add(input);
 
