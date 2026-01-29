@@ -43,18 +43,23 @@ public class Main {
         //     return;
         // }
         if (!interactive) {
+    // Scanner scanner = new Scanner(System.in);
+    // while (true) {
+    //     System.out.print("$ ");
+    //     System.out.flush();
+
+    //     if (!scanner.hasNextLine()) break; // EOF
+
+    //     String input = scanner.nextLine().trim();
+    //     if (input.equals("exit")) break;
+    //     history.add(input);
+
+    //     handleCommand(input, builtins, System.in, System.out);
     Scanner scanner = new Scanner(System.in);
-    while (true) {
-        System.out.print("$ ");
-        System.out.flush();
-
-        if (!scanner.hasNextLine()) break; // EOF
-
-        String input = scanner.nextLine().trim();
-        if (input.equals("exit")) break;
-        history.add(input);
-
-        handleCommand(input, builtins, System.in, System.out);
+        while (scanner.hasNextLine()) {
+            String input = scanner.nextLine().trim();
+            if (input.equals("exit")) break;
+            handleCommand(input, builtins, System.in, System.out);
     }
     return;
         }
@@ -256,40 +261,49 @@ public class Main {
 
     // return false;
 
-     try {
-        if (System.console() != null) return true;
-    } catch (Throwable ignored) {}
+    //  try {
+    //     if (System.console() != null) return true;
+    // } catch (Throwable ignored) {}
 
-    try {
-        Path fd0 = Path.of("/proc/self/fd/0");
-        if (Files.exists(fd0) && Files.isSymbolicLink(fd0)) {
-            String target = Files.readSymbolicLink(fd0).toString();
-            if (target.contains("/dev/pts") || target.contains("/dev/tty")) return true;
-        }
-    } catch (Throwable ignored) {}
+    // try {
+    //     Path fd0 = Path.of("/proc/self/fd/0");
+    //     if (Files.exists(fd0) && Files.isSymbolicLink(fd0)) {
+    //         String target = Files.readSymbolicLink(fd0).toString();
+    //         if (target.contains("/dev/pts") || target.contains("/dev/tty")) return true;
+    //     }
+    // } catch (Throwable ignored) {}
 
-    try {
-        Path stdin = Path.of("/dev/stdin");
-        Path stdout = Path.of("/dev/stdout");
-        if (Files.exists(stdin) && Files.exists(stdout)) {
-            String in = stdin.toRealPath().toString();
-            String out = stdout.toRealPath().toString();
-            if ((in.startsWith("/dev/pts/") || in.startsWith("/dev/tty")) &&
-                (out.startsWith("/dev/pts/") || out.startsWith("/dev/tty"))) {
-                return true;
-            }
-        }
-    } catch (Throwable ignored) {}
+    // try {
+    //     Path stdin = Path.of("/dev/stdin");
+    //     Path stdout = Path.of("/dev/stdout");
+    //     if (Files.exists(stdin) && Files.exists(stdout)) {
+    //         String in = stdin.toRealPath().toString();
+    //         String out = stdout.toRealPath().toString();
+    //         if ((in.startsWith("/dev/pts/") || in.startsWith("/dev/tty")) &&
+    //             (out.startsWith("/dev/pts/") || out.startsWith("/dev/tty"))) {
+    //             return true;
+    //         }
+    //     }
+    // } catch (Throwable ignored) {}
 
-    try {
-        Path devTty = Path.of("/dev/tty");
-        if (Files.exists(devTty) && Files.isReadable(devTty) && Files.isWritable(devTty)) return true;
-    } catch (Throwable ignored) {}
+    // try {
+    //     Path devTty = Path.of("/dev/tty");
+    //     if (Files.exists(devTty) && Files.isReadable(devTty) && Files.isWritable(devTty)) return true;
+    // } catch (Throwable ignored) {}
 
-    return false;
+    // return false;
 
    
-   
+   if (System.console() != null) return true;
+
+    // 2. The "Descriptor" Way (Checking if STDIN is a terminal)
+    // We check if the 'stty' command succeeds. If it fails, we are likely being piped into.
+    try {
+        Process p = new ProcessBuilder("sh", "-c", "tty < /dev/tty").start();
+        return p.waitFor() == 0;
+    } catch (Exception e) {
+        return false;
+    }
 
 
    
