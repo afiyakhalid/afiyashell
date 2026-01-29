@@ -554,6 +554,29 @@ else{
     return; 
 }
 } 
+if(args.length>=2&&args[1].equals("-a")){
+if (args.length < 3) {
+        out.println("history: -w requires a file operand");
+        return;
+    }
+    String filepath = args[2];
+    Path path = Paths.get(filepath);
+    if (!path.isAbsolute()) {
+        path = current.resolve(path).normalize();
+    }
+    try {
+      if (path.getParent() != null) Files.createDirectories(path.getParent());
+            
+            
+            Files.write(path, history, java.nio.charset.StandardCharsets.UTF_8, 
+                java.nio.file.StandardOpenOption.CREATE, 
+                java.nio.file.StandardOpenOption.TRUNCATE_EXISTING,
+                java.nio.file.StandardOpenOption.WRITE);
+    } catch (Exception e) {
+        out.println("history: " + filepath + ": Unable to write file");
+    }
+    return;
+}
         if (args.length == 1) {
         for (int i = 0; i < history.size(); i++) {
             out.println("    " + (i + 1) + "  " + history.get(i));
