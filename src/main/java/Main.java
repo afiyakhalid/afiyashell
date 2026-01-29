@@ -270,21 +270,21 @@ String histfile = System.getenv("HISTFILE");
         // } catch (Exception e) {
         //     return false;
         // }
-        try {
-        if (System.console() == null) return false;
+    //     try {
+    //     if (System.console() == null) return false;
 
-        String in = Path.of("/dev/stdin").toRealPath().toString();
-        String out = Path.of("/dev/stdout").toRealPath().toString();
+    //     String in = Path.of("/dev/stdin").toRealPath().toString();
+    //     String out = Path.of("/dev/stdout").toRealPath().toString();
 
-        boolean inIsTty = in.startsWith("/dev/pts/") || in.startsWith("/dev/tty");
-        boolean outIsTty = out.startsWith("/dev/pts/") || out.startsWith("/dev/tty");
+    //     boolean inIsTty = in.startsWith("/dev/pts/") || in.startsWith("/dev/tty");
+    //     boolean outIsTty = out.startsWith("/dev/pts/") || out.startsWith("/dev/tty");
 
-        return inIsTty && outIsTty;
-    } catch (Exception e) {
+    //     return inIsTty && outIsTty;
+    // } catch (Exception e) {
 
-    }
-        return false;
-      }
+    // }
+    //     return false;
+    //   }
 
     // try {
     //     if (System.console() != null) return true;
@@ -391,21 +391,21 @@ String histfile = System.getenv("HISTFILE");
 //     return false;
 // } 
 //handling commands
-// if (System.console() != null) {
-//         return true;
-//     }
+if (System.console() != null) {
+        return true;
+    }
 
   
-//     try {
-//         ProcessBuilder pb = new ProcessBuilder("sh", "-c", "test -t 0");
-//         Process p = pb.start();
-//         int exitCode = p.waitFor();
-//         return exitCode == 0;
-//     } catch (Exception e) {
+    try {
+        ProcessBuilder pb = new ProcessBuilder("sh", "-c", "test -t 0");
+        Process p = pb.start();
+        int exitCode = p.waitFor();
+        return exitCode == 0;
+    } catch (Exception e) {
         
-//         return false;
-//     }
-// }
+        return false;
+    }
+}
 
 
 
