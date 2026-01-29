@@ -60,8 +60,9 @@ if (historyfile != null && !historyfile.isBlank()) {
 
         String input = scanner.nextLine().trim();
         if (input.equals("exit")) break;
-        history.add(input);
-        
+       if (!input.isEmpty()) {
+    history.add(input);      
+}
 
         handleCommand(input, builtins, System.in, System.out);
     
@@ -251,9 +252,7 @@ if (historyfile != null && !historyfile.isBlank()) {
     System.exit(0);
 }
 
-if (!input.isEmpty()) {
-    history.add(input);
-}
+
 
             handleCommand(input, builtins, System.in, System.out);
         }
