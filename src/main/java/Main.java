@@ -364,7 +364,7 @@ if (input.contains("|")) {
         runMultiPipeline(rawCommands, builtins, stdin, stdout);
         return;
 }
-       
+    //hello   
      if (input.startsWith("echo "))
         {
         String[] parts=parseArguments(input);
