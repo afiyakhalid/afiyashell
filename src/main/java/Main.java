@@ -630,7 +630,7 @@ else{
                             String t = l.trim().replaceAll("^\\s*\\d+\\s+", "");
                             if (!t.isEmpty()) history.add(t);
                         }
-                   
+                      historyWriteIndex = history.size();
                         // If we read history from a file, we can optionally advance the writeIndex 
                         // so we don't duplicate these back to disk, or leave it to duplicate. 
                         // Standard bash usually appends file content to memory.
@@ -640,7 +640,7 @@ else{
                 } else {
                     out.println("history: " + args[2] + ": No such file or directory");
                 }
-                  historyWriteIndex = history.size();
+                 
             }
             // HISTORY WRITE (Truncate)
             else if (args.length >= 2 && args[1].equals("-w")) {
@@ -654,11 +654,12 @@ else{
                     if (path.getParent() != null) Files.createDirectories(path.getParent());
                     Files.write(path, history, java.nio.charset.StandardCharsets.UTF_8,
                             StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+                              historyWriteIndex = history.size();
                 } 
                 catch (IOException e) {
                     out.println("history: " + args[2] + ": Unable to write file");
                 }
-                historyWriteIndex = history.size();
+                
             } 
             // HISTORY APPEND (The fix is here)
             else if (args.length >= 2 && args[1].equals("-a")) {
