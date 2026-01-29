@@ -570,7 +570,7 @@ if (args.length < 3) {
             
             Files.write(path, history, java.nio.charset.StandardCharsets.UTF_8, 
                 java.nio.file.StandardOpenOption.CREATE, 
-                java.nio.file.StandardOpenOption.TRUNCATE_EXISTING,
+                java.nio.file.StandardOpenOption.APPEND,
                 java.nio.file.StandardOpenOption.WRITE);
     } catch (Exception e) {
         out.println("history: " + filepath + ": Unable to write file");
