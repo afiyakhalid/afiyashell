@@ -206,16 +206,19 @@ public class Main {
              setRawMode(false);
                 String input = inputbuffer.toString().trim();
             if (input.equals("exit")) {
-                String histfile=System.getenv("HISTFILE");
-                if(histfile!=null){
-                    try{
-                    Path path=Paths.get(histfile);
-                    Files.write(path, history);
-              
-                    }catch (IOException e) {
-        
-        }
-                }
+              String histfile = System.getenv("HISTFILE");
+if (histfile != null && !histfile.isBlank()) {
+    Path path = Paths.get(histfile);
+    if (!path.isAbsolute()) path = current.resolve(path).normalize();
+    try {
+        if (path.getParent() != null) Files.createDirectories(path.getParent());
+        Files.write(path, history, java.nio.charset.StandardCharsets.UTF_8,
+                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+        historyWriteIndex = history.size();
+    } catch (IOException e) {
+        System.err.println("warning: unable to write HISTFILE " + path + ": " + e.getMessage());
+    }
+}
                 // break;
                 System.exit(0);
                 
