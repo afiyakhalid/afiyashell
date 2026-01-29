@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 
 
 
-
+//added history index
 public class Main {
     private static Path current=Paths.get(System.getProperty("user.dir"));
      private static List<String> history=new ArrayList<>();
