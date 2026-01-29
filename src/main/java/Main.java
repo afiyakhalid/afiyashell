@@ -206,6 +206,15 @@ public class Main {
              setRawMode(false);
                 String input = inputbuffer.toString().trim();
             if (input.equals("exit")) {
+                String histfile=System.getenv("HISTFILE");
+                if(histfile!=null){
+                    try{
+                    Path path=Paths.get(histfile);
+                    Files.write(path, history, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                    }catch (IOException e) {
+        
+        }
+                }
                 break; 
             }
             history.add(input);
