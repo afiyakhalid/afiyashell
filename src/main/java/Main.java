@@ -218,33 +218,39 @@ if (historyfile != null && !historyfile.isBlank()) {
             history.add(input);
         }
             if (input.equals("exit")) {
-//               String histfile = System.getenv("HISTFILE");
-// if (histfile != null && !histfile.isBlank()) {
-//     Path path = Paths.get(histfile);
-//     if (!path.isAbsolute()) path = current.resolve(path).normalize();
-//     try {
-//         if (path.getParent() != null) Files.createDirectories(path.getParent());
-//         Files.write(path, history, java.nio.charset.StandardCharsets.UTF_8,
-//                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
-//         historyWriteIndex = history.size();
-//     } catch (IOException e) {
-//         System.err.println("warning: unable to write HISTFILE " + path + ": " + e.getMessage());
+
+//             String histfile = System.getenv("HISTFILE");
+//     if (histfile != null && !histfile.isBlank()) {
+//         Path path = Paths.get(histfile);
+//         if (!path.isAbsolute()) path = current.resolve(path).normalize();
+//         try {
+//             if (path.getParent() != null) Files.createDirectories(path.getParent());
+//             Files.write(path, history, java.nio.charset.StandardCharsets.UTF_8,
+//                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+//             historyWriteIndex = history.size();
+//         } catch (IOException e) {
+//             System.err.println("warning: unable to write HISTFILE " + path + ": " + e.getMessage());
+//         }
 //     }
+//     System.exit(0);
 // }
-                // break;
-            //     System.exit(0);
-                
-            // }
-            // history.add(input);
-            String histfile = System.getenv("HISTFILE");
+String histfile = System.getenv("HISTFILE");
     if (histfile != null && !histfile.isBlank()) {
         Path path = Paths.get(histfile);
         if (!path.isAbsolute()) path = current.resolve(path).normalize();
+        
         try {
             if (path.getParent() != null) Files.createDirectories(path.getParent());
-            Files.write(path, history, java.nio.charset.StandardCharsets.UTF_8,
-                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
-            historyWriteIndex = history.size();
+
+            // 
+            if (historyWriteIndex < history.size()) {
+                List<String> toAppend = history.subList(historyWriteIndex, history.size());
+                
+                Files.write(path, toAppend, java.nio.charset.StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE, 
+                    StandardOpenOption.APPEND, // <--- Use APPEND, not TRUNCATE
+                    StandardOpenOption.WRITE);
+            }
         } catch (IOException e) {
             System.err.println("warning: unable to write HISTFILE " + path + ": " + e.getMessage());
         }
